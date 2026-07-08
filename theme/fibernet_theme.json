@@ -1,0 +1,83 @@
+{
+  "name": "FiberNet Regulatório",
+  "dataColors": [
+    "#215C98",
+    "#E8833A",
+    "#4FA3A5",
+    "#8C6BB1",
+    "#C7534B",
+    "#7F8C99",
+    "#D9B44A",
+    "#3E7C59"
+  ],
+  "good": "#2E8B57",
+  "neutral": "#D9B44A",
+  "bad": "#C7534B",
+  "maximum": "#12365C",
+  "center": "#6BA3C7",
+  "minimum": "#DCE8F2",
+  "null": "#E1E4E8",
+  "foreground": "#252423",
+  "background": "#FFFFFF",
+  "tableAccent": "#215C98",
+  "textClasses": {
+    "title": {
+      "fontFace": "Segoe UI Semibold",
+      "fontSize": 13,
+      "color": "#252423"
+    },
+    "header": {
+      "fontFace": "Segoe UI Semibold",
+      "fontSize": 11,
+      "color": "#252423"
+    },
+    "label": {
+      "fontFace": "Segoe UI",
+      "fontSize": 10,
+      "color": "#605E5C"
+    },
+    "callout": {
+      "fontFace": "Segoe UI Semibold",
+      "fontSize": 28,
+      "color": "#215C98"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "title": [
+          {
+            "fontFamily": "Segoe UI Semibold",
+            "fontSize": 12,
+            "fontColor": "#252423",
+            "alignment": "left"
+          }
+        ],
+        "background": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#FFFFFF" } },
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#E1E4E8" } },
+            "radius": 8
+          }
+        ]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [
+          {
+            "color": { "solid": { "color": "#F4F6F9" } },
+            "transparency": 0
+          }
+        ]
+      }
+    }
+  }
+}
