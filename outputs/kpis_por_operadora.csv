@@ -1,0 +1,7 @@
+﻿operadora,volume,taxa_resolucao_pct,share_pct,assinantes_mi,recl_por_100k,ranking_volume,ranking_100k,score_risco
+CLARO,3391,71.87,42.39,35.2,9.63,1,2,0.5707
+VIVO,2000,71.55,25.0,33.1,6.04,2,5,0.3952
+TIM,1573,71.58,19.66,24.8,6.34,3,3,0.3436
+OI,775,74.32,9.69,12.6,6.15,4,4,0.092
+SERCOMTEL,166,68.07,2.08,0.4,41.5,5,1,0.6086
+DESCONHECIDA,95,73.68,1.19,2.0,4.75,6,6,0.0357

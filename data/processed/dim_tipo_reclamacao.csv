@@ -1,0 +1,36 @@
+﻿id_tipo,categoria,subcategoria
+1,Atendimento,Atendimento Ao Cliente
+2,Atendimento,Atendimento Inadequado
+3,Atendimento,Não Informado
+4,Cobrança,Cobrança Indevida
+5,Cobrança,Cobrança Indevida / Surpresa Na Fatura
+6,Cobrança,Não Informado
+7,Contrato,Cancelamento Não Realizado
+8,Contrato,Não Informado
+9,Falha,Falha/Interrupção Do Serviço
+10,Falha,Não Informado
+11,Instalação,Não Informado
+12,Instalação,Prazo De Instalação Excedido
+13,Internet,Não Informado
+14,Internet,Velocidade De Internet Móvel Abaixo
+15,Não Informado,Atendimento Ao Cliente
+16,Não Informado,Atendimento Inadequado
+17,Não Informado,Cancelamento Não Realizado
+18,Não Informado,Cobrança Indevida
+19,Não Informado,Cobrança Indevida / Surpresa Na Fatura
+20,Não Informado,Falha/Interrupção Do Serviço
+21,Não Informado,Não Informado
+22,Não Informado,Outros
+23,Não Informado,Portabilidade Numérica Não Efetivada
+24,Não Informado,Prazo De Instalação Excedido
+25,Não Informado,Queda De Sinal / Cobertura Inadequada
+26,Não Informado,Velocidade Abaixo Do Contratado
+27,Não Informado,Velocidade De Internet Móvel Abaixo
+28,Outros,Não Informado
+29,Outros,Outros
+30,Portabilidade,Não Informado
+31,Portabilidade,Portabilidade Numérica Não Efetivada
+32,Qualidade,Não Informado
+33,Qualidade,Queda De Sinal / Cobertura Inadequada
+34,Velocidade,Não Informado
+35,Velocidade,Velocidade Abaixo Do Contratado

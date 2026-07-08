@@ -1,0 +1,67 @@
+﻿operadora,motivo,volume,share_pct,ranking
+CLARO,Cobrança,827,10.34,1
+CLARO,Velocidade,675,8.44,2
+CLARO,Falha,383,4.79,3
+CLARO,Atendimento,331,4.14,4
+CLARO,Qualidade,278,3.48,5
+CLARO,Internet,241,3.01,6
+CLARO,Contrato,165,2.06,7
+CLARO,Portabilidade,159,1.99,8
+CLARO,Outros,131,1.64,9
+CLARO,Instalação,105,1.31,10
+CLARO,Não Informado,96,1.2,11
+DESCONHECIDA,Velocidade,22,0.27,1
+DESCONHECIDA,Cobrança,18,0.22,2
+DESCONHECIDA,Falha,11,0.14,3
+DESCONHECIDA,Internet,10,0.12,4
+DESCONHECIDA,Atendimento,9,0.11,5
+DESCONHECIDA,Qualidade,8,0.1,6
+DESCONHECIDA,Contrato,7,0.09,7
+DESCONHECIDA,Não Informado,4,0.05,8
+DESCONHECIDA,Portabilidade,3,0.04,9
+DESCONHECIDA,Outros,2,0.02,10
+DESCONHECIDA,Instalação,1,0.01,11
+OI,Cobrança,166,2.08,1
+OI,Velocidade,165,2.06,2
+OI,Atendimento,86,1.08,3
+OI,Falha,79,0.99,4
+OI,Qualidade,76,0.95,5
+OI,Internet,53,0.66,6
+OI,Contrato,36,0.45,7
+OI,Portabilidade,32,0.4,8
+OI,Instalação,28,0.35,9
+OI,Não Informado,28,0.35,9
+OI,Outros,26,0.32,11
+SERCOMTEL,Cobrança,34,0.43,1
+SERCOMTEL,Velocidade,30,0.38,2
+SERCOMTEL,Falha,19,0.24,3
+SERCOMTEL,Atendimento,18,0.22,4
+SERCOMTEL,Qualidade,17,0.21,5
+SERCOMTEL,Internet,16,0.2,6
+SERCOMTEL,Contrato,9,0.11,7
+SERCOMTEL,Instalação,8,0.1,8
+SERCOMTEL,Não Informado,5,0.06,9
+SERCOMTEL,Outros,5,0.06,9
+SERCOMTEL,Portabilidade,5,0.06,9
+TIM,Cobrança,370,4.62,1
+TIM,Velocidade,345,4.31,2
+TIM,Falha,162,2.02,3
+TIM,Qualidade,145,1.81,4
+TIM,Atendimento,143,1.79,5
+TIM,Internet,106,1.32,6
+TIM,Contrato,87,1.09,7
+TIM,Portabilidade,73,0.91,8
+TIM,Outros,52,0.65,9
+TIM,Instalação,47,0.59,10
+TIM,Não Informado,43,0.54,11
+VIVO,Cobrança,497,6.21,1
+VIVO,Velocidade,412,5.15,2
+VIVO,Falha,227,2.84,3
+VIVO,Atendimento,191,2.39,4
+VIVO,Qualidade,166,2.08,5
+VIVO,Internet,149,1.86,6
+VIVO,Contrato,98,1.23,7
+VIVO,Portabilidade,70,0.88,8
+VIVO,Não Informado,66,0.82,9
+VIVO,Instalação,62,0.78,10
+VIVO,Outros,62,0.78,10
