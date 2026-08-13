@@ -88,9 +88,9 @@ MARGIN = 32
 GUTTER = 16
 CONTENT_W = PAGE_W - 2 * MARGIN          # 1856
 HEADER_Y, HEADER_H = 20, 78   # 78: titulo 22px + subtitulo 11px cabem sem corte
-FILTER_Y, FILTER_H = 108, 60              # 60px: cabecalho do slicer + caixa suspensa
-BODY_Y = 184                              # inicio da area de conteudo
-BODY_H = PAGE_H - BODY_Y - 36             # 860
+FILTER_Y, FILTER_H = 106, 80              # 80px: cabecalho + uma linha de blocos
+BODY_Y = 204                              # inicio da area de conteudo
+BODY_H = PAGE_H - BODY_Y - 36             # 840
 
 ENTITY_M = "_Medidas"
 
@@ -274,7 +274,7 @@ def panel(title: str | None = None, subtitle: str | None = None, framed: bool = 
             fontColor=solid(TXT),
             background=solid(BG_CARD),
             fontFamily=lit(FONT_SEMI),
-            fontSize=lit(11),
+            fontSize=lit(14),
             alignment=lit("left"),
             titleWrap=lit(False),
         )
@@ -284,7 +284,7 @@ def panel(title: str | None = None, subtitle: str | None = None, framed: bool = 
                 text=lit(subtitle or ""),
                 fontColor=solid(TXT_DIM),
                 fontFamily=lit(FONT),
-                fontSize=lit(9),
+                fontSize=lit(11),
                 alignment=lit("left"),
                 titleWrap=lit(False),
             )
@@ -293,7 +293,7 @@ def panel(title: str | None = None, subtitle: str | None = None, framed: bool = 
     return c
 
 
-def axis_cat(show_title: bool = False, font: int = 9) -> list:
+def axis_cat(show_title: bool = False, font: int = 11) -> list:
     return obj(
         show=lit(True),
         labelColor=solid(TXT_MUT),
@@ -305,7 +305,7 @@ def axis_cat(show_title: bool = False, font: int = 9) -> list:
     )
 
 
-def axis_val(show: bool = True, font: int = 9, start: float | None = None) -> list:
+def axis_val(show: bool = True, font: int = 11, start: float | None = None) -> list:
     props = {
         "show": lit(show),
         "labelColor": solid(TXT_MUT),
@@ -328,13 +328,13 @@ def legend(position: str = "TopLeft", show: bool = True) -> list:
         show=lit(show),
         labelColor=solid(TXT_MUT),
         fontFamily=lit(FONT),
-        fontSize=lit(9),
+        fontSize=lit(11),
         showTitle=lit(False),
         position=lit(position),
     )
 
 
-def data_labels(show: bool = True, color: str = TXT_MUT, font: int = 9, unit: str | None = None) -> list:
+def data_labels(show: bool = True, color: str = TXT_MUT, font: int = 11, unit: str | None = None) -> list:
     props = {
         "show": lit(show),
         "color": solid(color),
@@ -346,14 +346,14 @@ def data_labels(show: bool = True, color: str = TXT_MUT, font: int = 9, unit: st
     return [{"properties": props}]
 
 
-def table_style(total: bool = False, font: int = 10) -> dict:
+def table_style(total: bool = False, font: int = 12) -> dict:
     """Formatacao comum de tabela/matriz: cabecalho discreto, grade horizontal fina."""
     return {
         "columnHeaders": obj(
             fontColor=solid(TXT_DIM),
             backColor=solid(BG_CARD),
             fontFamily=lit(FONT_SEMI),
-            fontSize=lit(9),
+            fontSize=lit(11),
             outline=lit("BottomOnly"),
             wordWrap=lit(False),
         ),
@@ -566,7 +566,7 @@ def matrix(page: str, key: str, box, title: str, subtitle: str,
         fontColor=solid(TXT),
         backColor=solid(BG_CARD),
         fontFamily=lit(FONT),
-        fontSize=lit(10),
+        fontSize=lit(12),
         steppedLayout=lit(True),
         outline=lit("None"),
     )
@@ -574,7 +574,7 @@ def matrix(page: str, key: str, box, title: str, subtitle: str,
         fontColor=solid(TXT_DIM),
         backColor=solid(BG_CARD),
         fontFamily=lit(FONT_SEMI),
-        fontSize=lit(9),
+        fontSize=lit(11),
         outline=lit("BottomOnly"),
         autoSizeColumnWidth=lit(True),
     )
@@ -641,12 +641,17 @@ def scatter(page: str, key: str, box, title: str, subtitle: str,
 
 
 def slicer(page: str, key: str, box, label: str, entity: str, prop: str) -> dict:
+    # Blocos, nao lista suspensa: e o acabamento do Chiclet Slicer feito com o
+    # visual nativo (mode Basic + orientacao horizontal renderiza cada valor como
+    # botao). Evita depender de visual de marketplace, que obrigaria quem abrisse
+    # o arquivo a instalar o pacote antes de conseguir filtrar.
     objects: dict = {}
     if on("slicerobj"):
         objects = {
-            "data": obj(mode=lit("Dropdown")),
+            "data": obj(mode=lit("Basic")),
             "general": obj(orientation=lit(1), outlineColor=solid(BORDER), outlineWeight=lit(1)),
-            "selection": obj(singleSelect=lit(False), strictSingleSelect=lit(False)),
+            "selection": obj(singleSelect=lit(False), strictSingleSelect=lit(False),
+                             selectAllCheckboxEnabled=lit(False)),
         }
     return visual(
         page, key, "slicer", box,
@@ -656,11 +661,13 @@ def slicer(page: str, key: str, box, label: str, entity: str, prop: str) -> dict
             "header": obj(
                 show=lit(True), text=lit(label), fontColor=solid(TXT_DIM),
                 background=solid(BG_CARD), fontFamily=lit(FONT_SEMI),
-                fontSize=lit(9), outline=lit("None"),
+                fontSize=lit(11), outline=lit("None"),
             ),
             "items": obj(
-                fontColor=solid(TXT), background=solid(BG_CARD),
-                fontFamily=lit(FONT), fontSize=lit(10), outline=lit("None"),
+                fontColor=solid(TXT_MUT), background=solid(BG_PAGE),
+                fontFamily=lit(FONT), fontSize=lit(10),
+                outline=lit("Frame"), outlineColor=solid(BORDER), outlineWeight=lit(1),
+                padding=lit(5),
             ),
         },
         container={
@@ -717,14 +724,16 @@ def navigator(page: str, box) -> dict:
 def chrome(page: str, title: str, subtitle: str, filters: bool = True) -> list:
     v = [
         textbox(page, "titulo", (MARGIN, HEADER_Y, 820, HEADER_H), [
-            run(title, 22, TXT, bold=True),
-            run("\n" + subtitle, 11, TXT_DIM),
+            run(title, 26, TXT, bold=True),
+            run("\n" + subtitle, 13, TXT_DIM),
         ]),
     ]
     if on("nav"):
         v.append(navigator(page, (960, HEADER_Y + 4, PAGE_W - MARGIN - 960, 42)))
     if filters:
-        widths = [(MARGIN, 190), (MARGIN + 206, 250), (MARGIN + 472, 210), (MARGIN + 698, 200)]
+        # Largura proporcional a quantidade de valores: em bloco cada valor ocupa
+        # espaco. Operadora tem 6, Regiao 5, Ano e Servico 2 cada.
+        widths = [(MARGIN, 160), (MARGIN + 176, 672), (MARGIN + 864, 486), (MARGIN + 1366, 160)]
         specs = [
             ("Ano", "dim_calendario", "Ano"),
             ("Operadora", "dim_operadora", "Operadora"),
@@ -733,9 +742,8 @@ def chrome(page: str, title: str, subtitle: str, filters: bool = True) -> list:
         ]
         for (x, w), (label, ent, prop) in zip(widths, specs):
             v.append(slicer(page, f"slicer_{prop}", (x, FILTER_Y, w, FILTER_H), label, ent, prop))
-        v.append(textbox(page, "fonte", (PAGE_W - MARGIN - 520, FILTER_Y + 18, 520, 30), [
-            run("ANATEL · Reclamações de consumidores · 2022–2023 · dados sintéticos",
-                10, TXT_DIM),
+        v.append(textbox(page, "fonte", (PAGE_W - MARGIN - 340, FILTER_Y + 34, 340, 44), [
+            run("ANATEL · 2022–2023\ndados sintéticos", 11, TXT_DIM),
         ], align="right"))
     return v
 
@@ -750,7 +758,7 @@ def page_panorama() -> tuple[str, list]:
                "8.000 reclamações, 71,9% respondidas e um mercado altamente concentrado — as três maiores operadoras respondem por 87% das queixas. Clique em qualquer elemento para filtrar a página.")
 
     # Faixa de KPIs
-    kpi_y, kpi_h = BODY_Y, 118
+    kpi_y, kpi_h = BODY_Y, 112
     for (x, w), (key, label, measure, color, note, cm) in zip(cols(5), [
         ("k1", "TOTAL DE RECLAMAÇÕES", "Total Reclamações", CYAN, "no período filtrado", None),
         ("k2", "TAXA DE RESOLUÇÃO", "% Taxa Resolução", GREEN, "respondidas / total", None),
@@ -763,12 +771,12 @@ def page_panorama() -> tuple[str, list]:
     # Faixa de leitura automatica. Altura folgada porque o cartao divide o
     # espaco com o titulo e o subtitulo do painel.
     ins_y = kpi_y + kpi_h + GUTTER
-    ins_h = 92
+    ins_h = 84
     v.append(visual(
         p, "insight", "card", (MARGIN, ins_y, CONTENT_W, ins_h),
         query=q({"Values": [measure_field("Insight Executivo")]}),
         objects={
-            "labels": obj(color=solid(TXT), fontFamily=lit(FONT), fontSize=lit(12)),
+            "labels": obj(color=solid(TXT), fontFamily=lit(FONT), fontSize=lit(14)),
             "categoryLabels": obj(show=lit(False)),
             "wordWrap": obj(show=lit(True)),
         },
@@ -776,10 +784,12 @@ def page_panorama() -> tuple[str, list]:
     ))
 
     top = ins_y + ins_h + GUTTER
-    h = (PAGE_H - 36 - top - GUTTER) / 2
+    livre = PAGE_H - 36 - top - GUTTER
+    h_topo = livre * 0.46
+    h_base = livre * 0.54
     (xa, wa), (xb, wb) = cols(2)
 
-    v.append(line(p, "serie", (MARGIN, top, 1218, h),
+    v.append(line(p, "serie", (MARGIN, top, 1218, h_topo),
                   "Evolução mensal do volume",
                   "reclamações abertas por mês e média móvel de 3 meses",
                   "dim_calendario", "Mês",
@@ -790,19 +800,19 @@ def page_panorama() -> tuple[str, list]:
                   # ancorar em zero achata a variacao ate ela sumir.
                   start=None))
 
-    v.append(donut(p, "status", (MARGIN + 1218 + GUTTER, top, CONTENT_W - 1218 - GUTTER, h),
+    v.append(donut(p, "status", (MARGIN + 1218 + GUTTER, top, CONTENT_W - 1218 - GUTTER, h_topo),
                    "Composição por status",
                    "situação atual das reclamações do período",
                    "fato_reclamacoes", "Status", "Total Reclamações",
                    points=category_colors("fato_reclamacoes", "Status", STATUS)))
 
-    v.append(bar(p, "operadoras", (xa, top + h + GUTTER, wa, h),
+    v.append(bar(p, "operadoras", (xa, top + h_topo + GUTTER, wa, h_base),
                  "Volume por operadora",
                  "cor fixa por marca em todas as páginas",
                  "dim_operadora", "Operadora", "Total Reclamações",
                  points=category_colors("dim_operadora", "Operadora", BRAND)))
 
-    v.append(bar(p, "motivos", (xb, top + h + GUTTER, wb, h),
+    v.append(bar(p, "motivos", (xb, top + h_topo + GUTTER, wb, h_base),
                  "Principais motivos",
                  "categoria da reclamação registrada na ANATEL",
                  "dim_tipo_reclamacao", "Categoria", "Total Reclamações",
