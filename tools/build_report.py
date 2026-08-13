@@ -48,6 +48,7 @@ BG_PAGE = "#0B0D11"    # canvas
 BG_CARD = "#12151B"    # superficie dos paineis
 BORDER = "#1E232D"     # contorno dos paineis
 GRID = "#191D25"       # linhas de grade
+BG_ALT = "#171B23"     # faixa alternada das tabelas
 
 TXT = "#E9EDF3"        # texto primario
 TXT_MUT = "#96A0B2"    # texto secundario
@@ -259,11 +260,12 @@ def sort_by_column(entity: str, prop: str, direction: str = "Ascending") -> dict
 # Chrome padrao dos paineis
 # ---------------------------------------------------------------------------
 
-def panel(title: str | None = None, subtitle: str | None = None, framed: bool = True) -> dict:
+def panel(title: str | None = None, subtitle: str | None = None, framed: bool = True,
+          centro: bool = False) -> dict:
     """Moldura padrao: fundo, borda, titulo e subtitulo com a mesma tipografia."""
     c: dict = {
         "background": obj(show=lit(framed), color=solid(BG_CARD), transparency=lit(0)),
-        "border": obj(show=lit(framed), color=solid(BORDER), radius=lit(12)),
+        "border": obj(show=lit(framed), color=solid(BORDER), radius=lit(16)),
         "dropShadow": obj(show=lit(False)),
         "visualHeader": obj(show=lit(False)),
     }
@@ -275,7 +277,7 @@ def panel(title: str | None = None, subtitle: str | None = None, framed: bool = 
             background=solid(BG_CARD),
             fontFamily=lit(FONT_SEMI),
             fontSize=lit(14),
-            alignment=lit("left"),
+            alignment=lit("center" if centro else "left"),
             titleWrap=lit(False),
         )
         if on("subtitle"):
@@ -285,7 +287,7 @@ def panel(title: str | None = None, subtitle: str | None = None, framed: bool = 
                 fontColor=solid(TXT_DIM),
                 fontFamily=lit(FONT),
                 fontSize=lit(11),
-                alignment=lit("left"),
+                alignment=lit("center" if centro else "left"),
                 titleWrap=lit(False),
             )
     else:
@@ -350,18 +352,22 @@ def table_style(total: bool = False, font: int = 12) -> dict:
     """Formatacao comum de tabela/matriz: cabecalho discreto, grade horizontal fina."""
     return {
         "columnHeaders": obj(
-            fontColor=solid(TXT_DIM),
-            backColor=solid(BG_CARD),
+            fontColor=solid(TXT_MUT),
+            backColor=solid(BG_ALT),
             fontFamily=lit(FONT_SEMI),
             fontSize=lit(11),
             outline=lit("BottomOnly"),
             wordWrap=lit(False),
+            alignment=lit("left"),
         ),
+        # Faixa alternada: em tabela de 10+ linhas o olho perde a linha no meio
+        # do caminho. As duas cores sao proximas de proposito — a faixa serve
+        # para guiar, nao para chamar atencao.
         "values": obj(
             fontColorPrimary=solid(TXT),
             backColorPrimary=solid(BG_CARD),
             fontColorSecondary=solid(TXT),
-            backColorSecondary=solid(BG_CARD),
+            backColorSecondary=solid(BG_ALT),
             fontFamily=lit(FONT),
             fontSize=lit(font),
             outline=lit("None"),
@@ -374,7 +380,7 @@ def table_style(total: bool = False, font: int = 12) -> dict:
             gridHorizontalWeight=lit(1),
             outlineColor=solid(BORDER),
             outlineWeight=lit(1),
-            rowPadding=lit(6),
+            rowPadding=lit(8),
             textSize=lit(font),
         ),
         "total": obj(
@@ -478,7 +484,7 @@ def kpi(page: str, key: str, box, label: str, measure: str, color: str,
             "categoryLabels": obj(show=lit(False)),
             "wordWrap": obj(show=lit(False)),
         },
-        container=panel(label, note),
+        container=panel(label, note, centro=True),
     )
 
 
@@ -564,7 +570,7 @@ def matrix(page: str, key: str, box, title: str, subtitle: str,
     objects = table_style(total=False)
     objects["rowHeaders"] = obj(
         fontColor=solid(TXT),
-        backColor=solid(BG_CARD),
+        backColor=solid(BG_ALT),
         fontFamily=lit(FONT),
         fontSize=lit(12),
         steppedLayout=lit(True),
@@ -659,20 +665,20 @@ def slicer(page: str, key: str, box, label: str, entity: str, prop: str) -> dict
         objects={
             **objects,
             "header": obj(
-                show=lit(True), text=lit(label), fontColor=solid(TXT_DIM),
+                show=lit(True), text=lit(label), fontColor=solid(TXT_MUT),
                 background=solid(BG_CARD), fontFamily=lit(FONT_SEMI),
-                fontSize=lit(11), outline=lit("None"),
+                fontSize=lit(11), outline=lit("BottomOnly"),
             ),
             "items": obj(
-                fontColor=solid(TXT_MUT), background=solid(BG_PAGE),
-                fontFamily=lit(FONT), fontSize=lit(10),
-                outline=lit("Frame"), outlineColor=solid(BORDER), outlineWeight=lit(1),
-                padding=lit(5),
+                fontColor=solid(TXT), background=solid(BG_ALT),
+                fontFamily=lit(FONT_SEMI), fontSize=lit(10),
+                outline=lit("Frame"), outlineColor=solid("#2A3140"), outlineWeight=lit(1),
+                padding=lit(6),
             ),
         },
         container={
             "background": obj(show=lit(True), color=solid(BG_CARD), transparency=lit(0)),
-            "border": obj(show=lit(True), color=solid(BORDER), radius=lit(10)),
+            "border": obj(show=lit(True), color=solid(BORDER), radius=lit(14)),
             "dropShadow": obj(show=lit(False)),
             "visualHeader": obj(show=lit(False)),
             "title": obj(show=lit(False)),
@@ -733,7 +739,7 @@ def chrome(page: str, title: str, subtitle: str, filters: bool = True) -> list:
     if filters:
         # Largura proporcional a quantidade de valores: em bloco cada valor ocupa
         # espaco. Operadora tem 6, Regiao 5, Ano e Servico 2 cada.
-        widths = [(MARGIN, 160), (MARGIN + 176, 672), (MARGIN + 864, 486), (MARGIN + 1366, 160)]
+        widths = [(MARGIN, 196), (MARGIN + 212, 672), (MARGIN + 900, 500), (MARGIN + 1416, 172)]
         specs = [
             ("Ano", "dim_calendario", "Ano"),
             ("Operadora", "dim_operadora", "Operadora"),
@@ -742,9 +748,9 @@ def chrome(page: str, title: str, subtitle: str, filters: bool = True) -> list:
         ]
         for (x, w), (label, ent, prop) in zip(widths, specs):
             v.append(slicer(page, f"slicer_{prop}", (x, FILTER_Y, w, FILTER_H), label, ent, prop))
-        v.append(textbox(page, "fonte", (PAGE_W - MARGIN - 340, FILTER_Y + 34, 340, 44), [
-            run("ANATEL · 2022–2023\ndados sintéticos", 11, TXT_DIM),
-        ], align="right"))
+        # Sem nota de fonte por pagina: a origem e a natureza do dado estao
+    # declaradas na lede da primeira pagina e na pagina de metodologia. Repetir
+    # em toda pagina so disputava espaco com os filtros.
     return v
 
 
@@ -771,7 +777,7 @@ def page_panorama() -> tuple[str, list]:
     # Faixa de leitura automatica. Altura folgada porque o cartao divide o
     # espaco com o titulo e o subtitulo do painel.
     ins_y = kpi_y + kpi_h + GUTTER
-    ins_h = 84
+    ins_h = 96
     v.append(visual(
         p, "insight", "card", (MARGIN, ins_y, CONTENT_W, ins_h),
         query=q({"Values": [measure_field("Insight Executivo")]}),
@@ -827,7 +833,7 @@ def page_operadoras() -> tuple[str, list]:
                "SERCOMTEL é a menor operadora em volume e a que mais gera reclamação por assinante: 41,5 a cada 100 mil, contra 9,6 da CLARO. Ranking bruto mede tamanho de base, não qualidade de serviço.")
 
     # A tabela tem 6 linhas: dar metade da pagina a ela deixaria um vazio grande.
-    r = split(3, 1.7)
+    r = split(3, 2.1)
     (xa, wa), (xb, wb) = cols(2)
 
     v.append(scatter(p, "disp", (xa, r[0][0], wa, r[0][1]),
