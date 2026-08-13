@@ -1,214 +1,137 @@
-# Dashboard Guide — Telecom Reclamações ANATEL
+# Guia de leitura do dashboard
 
-> Guia completo para entender, usar e atualizar o dashboard Power BI de reclamações de telecomunicações.
-
----
-
-## Visão Geral
-
-O dashboard monitora o **volume, tipo e resolução de reclamações** de consumidores registradas na ANATEL para os serviços de internet banda larga (SCM) e celular (SMP) das principais operadoras do Brasil.
-
-**Para quem serve:**
-- Gestores de qualidade e atendimento de operadoras
-- Analistas de regulação e compliance
-- Executivos monitorando posicionamento competitivo
-
-**Período coberto:** 2022–2023 (atualizável conforme disponibilidade ANATEL)
+Como navegar as 6 páginas e, mais importante, o que cada número quer dizer.
 
 ---
 
-## Modelo de Dados (Star Schema)
+## Como o relatório se comporta
+
+**Filtros.** Cada página (menos Metodologia) tem a mesma barra: **Ano**, **Operadora**,
+**Região** e **Serviço**. Os filtros valem para a página em que estão — mudar de página
+não carrega a seleção junto.
+
+**Cruzamento.** Clicar em qualquer barra, fatia ou linha de tabela filtra os outros
+visuais da página. Clicar de novo desfaz. `Ctrl` + clique acumula seleção.
+
+**Navegação.** A barra de botões no topo direito troca de página; as abas na base do
+Power BI fazem o mesmo.
+
+**Drill.** Na matriz *Categoria × operadora* (página Motivos), o `+` ao lado da categoria
+abre a subcategoria.
+
+**Cor.** Cada operadora tem cor fixa em todas as páginas — CLARO ciano, VIVO índigo, TIM
+âmbar, OI verde, SERCOMTEL vermelho, NÃO IDENTIFICADA cinza. Status também: verde
+respondida, âmbar em análise, vermelho pendente.
+
+---
+
+## Página 1 — Panorama Executivo
+
+A leitura de 30 segundos.
+
+| Elemento | O que mostra | Como ler |
+|----------|--------------|----------|
+| Total de reclamações | Volume no filtro atual | Base de comparação de tudo na página |
+| Taxa de resolução | Respondidas ÷ total | Só mede se houve resposta, não se o cliente ficou satisfeito |
+| Em aberto | Sem resposta final (pendente + em análise) | Passivo acumulado de atendimento |
+| Variação mensal | Último mês vs. anterior | **Vermelho é alta de reclamação** — aqui subir é ruim |
+| Concentração (HHI) | Soma dos quadrados dos market shares | < 1.500 competitivo · até 2.500 concentrado · acima, altamente concentrado |
+| Leitura do período | Texto gerado por medida DAX | Reage aos filtros; some com o que está selecionado |
+| Evolução mensal | Volume por mês + média móvel 3M | A média móvel mostra a tendência sem o ruído do mês |
+| Composição por status | Distribuição do atendimento | O anel vermelho é o que ainda não foi respondido |
+| Volume por operadora | Ranking bruto | Mede tamanho de base tanto quanto qualidade — ver página Operadoras |
+| Principais motivos | Categoria do protocolo | Onde atacar primeiro |
+
+> O eixo do gráfico de evolução **não começa em zero**. É proposital: a série oscila numa
+> faixa estreita e ancorar em zero achataria a variação até ela sumir.
+
+---
+
+## Página 2 — Operadoras
+
+A comparação competitiva, e a correção do viés de porte.
+
+**Volume × taxa de resolução** — dispersão com as duas dimensões que importam. Eixo X é
+volume, eixo Y é o percentual resolvido, e o **tamanho da bolha é reclamação por 100k
+assinantes**. Canto inferior direito é o pior lugar do gráfico: muito volume, pouca
+resolução.
+
+**Reclamações por 100k assinantes** — a comparação justa. SERCOMTEL aparece em último no
+volume bruto e em **primeiro** aqui: proporcionalmente à sua base, é a operadora que mais
+gera reclamação. É o inverso da leitura ingênua do ranking.
+
+**Painel por operadora** — tudo consolidado. Clicar numa linha filtra os dois gráficos
+acima.
+
+> NÃO IDENTIFICADA aparece sem valor por 100k. Não é falha do relatório: não existe base
+> de assinantes para um registro sem prestadora, e a medida prefere ficar vazia a inventar.
+
+---
+
+## Página 3 — Motivos
+
+**Reclamações por categoria** — o ranking de causas.
+
+**Mix de motivos por operadora** — barras 100%. Aqui o tamanho da operadora some e sobra
+só a *composição*: se uma marca tem proporcionalmente muito mais "Cobrança" que as
+outras, o problema é de processo dela, não de escala.
+
+**Categoria × operadora** — matriz com drill. Expandir a categoria mostra a subcategoria,
+que é onde a causa raiz costuma aparecer.
+
+---
+
+## Página 4 — Regiões
+
+**Por região** e **por unidade federativa** — volume absoluto. Sem população como
+denominador, o ranking acompanha o tamanho do estado; SP no topo é esperado, não é
+descoberta.
+
+**Situação por região** — barras 100% de status. Diferença de taxa de resolução entre
+regiões indica capacidade de atendimento desigual.
+
+**Detalhe por UF** — share e taxa de resolução por estado.
+
+---
+
+## Página 5 — Risco Regulatório
+
+**Índice de risco por operadora** — o score composto:
 
 ```
-                         ┌─────────────────┐
-                         │  fato_reclamacoes│
-                         │─────────────────│
-                         │ id_reclamacao   │
-              ┌──────────│ id_operadora    │──────────┐
-              │          │ id_uf           │          │
-              │          │ id_tipo         │          │
-              │          │ id_calendario   │          │
-              │          │ dias_resolucao  │          │
-              │          │ status          │          │
-              │          │ qtd (=1)        │          │
-              │          └────────┬────────┘          │
-              │                   │                   │
-     dim_operadora         dim_calendario          dim_uf
-    ─────────────         ──────────────          ──────
-    id_operadora          id_calendario           id_uf
-    nome_operadora        data_completa           sigla_uf
-    porte                 ano                     nome_uf
-    grupo_economico       trimestre               regiao
-                          mes
-                          nome_mes
-                          fim_semana
-                                      dim_tipo_reclamacao
-                                      ───────────────────
-                                      id_tipo_reclamacao
-                                      categoria (motivo)
-                                      subcategoria (detalhe)
+score = 0,40 × volume normalizado
+      + 0,35 × (1 − taxa de resolução)
+      + 0,25 × reclamações por 100k normalizadas
 ```
 
-**Relacionamento:** Many-to-One (fato → dimensões) via chave inteira `id_*`.
+Cada componente é reescalado pelo maior valor do conjunto, então o score fica entre 0 e 1.
+Os pesos são uma escolha de modelagem — volume pesa mais porque é o que atrai atenção do
+regulador, mas falha de resolução pesa quase igual porque é o que ele cobra.
+
+**HHI, Top 3 e cobertura** — a estrutura do mercado e a confiabilidade da base.
+
+**Desvio do volume mensal** — z-score de cada mês contra a média do período. Barra acima
+de +2 ou abaixo de −2 é mês fora da curva e merece investigação; o resto é oscilação
+normal.
+
+**Tendência estrutural** — inclinação da reta de regressão sobre a série mensal, por
+operadora. Positivo significa piora consistente ao longo do período, não um mês ruim.
 
 ---
 
-## Páginas do Dashboard
+## Página 6 — Metodologia & Modelo
 
-### Página 1 — Visão Executiva (`overview`)
-
-**Propósito:** Painel de entrada com os KPIs mais críticos em cards de destaque.
-
-| Card | Medida DAX | Interpretação |
-|------|-----------|---------------|
-| Total Reclamações | `[Total Reclamações]` | Volume bruto no período filtrado |
-| Taxa de Resolução | `[% Taxa Resolução]` | % respondidas sobre total |
-| Pendentes | `[Pendentes]` | Reclamações sem resposta final |
-| Var. MoM | `[Var MoM %]` | Crescimento vs. mês anterior |
-| Dias Médios | `[Dias Médios Resolução]` | Tempo médio para resposta |
-
-**Visuais principais:**
-- **Barras horizontais:** Volume por operadora + linha de % resolução (eixo duplo)
-- **Gráfico de rosca:** Share por operadora (% do total)
-- **Linha temporal:** Tendência mensal de reclamações (total e por operadora)
-
-**Filtros de página:**
-- Período (slicer de data)
-- Operadora (multi-select)
-- Tipo de serviço: SCM / SMP
+Origem, grão, relações, camada de medidas, qualidade do dado e limites. Vale ler antes de
+tirar conclusão de qualquer número das outras páginas — principalmente a parte de
+**o que este relatório não responde**.
 
 ---
 
-### Página 2 — Análise de Motivos (`motivos`)
+## Armadilhas conhecidas
 
-**Propósito:** Entender o que provoca as reclamações e onde cada operadora falha.
-
-| Visual | Dados | Uso |
-|--------|-------|-----|
-| Treemap | Motivo × Volume | Ver hierarquia de problemas de um relance |
-| Heatmap | Operadora × Motivo | Identificar padrões de falha por marca |
-| Barras empilhadas | Motivo por trimestre | Detectar sazonalidade de tipos de problema |
-
-**Interpretação do heatmap:**
-- Células escuras = maior concentração de reclamações naquela combinação
-- Identifica qual operadora tem problema específico (ex: Claro + Cobrança)
-
----
-
-### Página 3 — Qualidade de Atendimento (`resolucao`)
-
-**Propósito:** Avaliar o quão bem cada operadora resolve os problemas.
-
-**KPIs exibidos:**
-- `% Taxa Resolução` por operadora
-- `Dias Médios Resolução` por operadora
-- `Pendentes` e `Em análise` por operadora
-
-**Visual de destaque:** Gráfico de bullet (gauge) comparando taxa de resolução de cada operadora vs. meta (ex: 80%).
-
-**Alerta condicional (`Flag Piora MoM`):**
-```
-🔴 Crítico     → Var MoM > +15% (piora expressiva)
-🟡 Atenção     → Var MoM entre +5% e +15%
-🟢 Melhora     → Var MoM < -5% (queda nas reclamações)
-⚪ Estável     → Var MoM entre -5% e +5%
-```
-
----
-
-### Página 4 — Análise Regional (`regional`)
-
-**Propósito:** Identificar onde os problemas se concentram geograficamente.
-
-**Visuais:**
-- **Mapa coroplético (shape map):** Brasil por UF, intensidade = volume de reclamações
-- **Barras horizontais:** Top 15 estados por volume
-- **Tabela detalhada:** UF × Operadora × Motivo com ranking
-
-**Nota para interpretação regional:**
-- Volume absoluto favorece estados populosos (SP, RJ, MG)
-- Use `[Reclamações por 100k Assinantes]` para comparação justa entre estados
-- Norte e Nordeste tendem a ter índice relativo mais alto apesar de menor volume absoluto
-
----
-
-### Página 5 — Índice de Risco (`risco`)
-
-**Propósito:** Score composto para ranquear operadoras por nível de risco regulatório.
-
-**Fórmula do Score de Risco:**
-```
-Score = Volume (40%) + Resolução Invertida (35%) + Recl/100k (25%)
-```
-- Cada componente normalizado de 0 a 1
-- Score mais alto = maior risco / pior performance
-
-**Índice de Concentração (HHI):**
-```DAX
-Índice Concentração = SUMX(ALL(dim_operadora[nome_operadora]),
-    ([Total Reclamações] / [Total Reclamações Geral]) ^ 2
-) * 10000
-```
-- HHI < 1.500: mercado competitivo
-- HHI 1.500–2.500: concentrado
-- HHI > 2.500: altamente concentrado
-
----
-
-## Como Atualizar os Dados
-
-### Atualização Manual (dados ANATEL)
-
-1. Acesse [dados.anatel.gov.br](https://dados.anatel.gov.br) → Reclamações de Consumidores
-2. Baixe os CSVs de SCM e SMP do período desejado
-3. Salve em `data/raw/` substituindo os arquivos existentes
-4. Execute o pipeline:
-   ```bash
-   python data_prep/prepare_data.py
-   python src/kpis.py
-   ```
-5. No Power BI Desktop: **Página Inicial → Atualizar**
-
-### Com dados sintéticos (demonstração)
-
-```bash
-python src/generate_data.py      # Gera CSVs sintéticos em data/raw/
-python data_prep/prepare_data.py # Gera star schema em data/processed/
-python src/kpis.py               # Exporta KPIs para outputs/
-```
-
----
-
-## Medidas DAX — Referência Rápida
-
-| Medida | Propósito | Página |
-|--------|-----------|--------|
-| `Total Reclamações` | Soma simples de qtd | Todas |
-| `% Taxa Resolução` | Respondidas / Total | Visão Executiva, Resolução |
-| `Var MoM %` | Variação vs. mês anterior | Visão Executiva |
-| `Var YoY %` | Variação vs. ano anterior | Visão Executiva |
-| `Média Móvel 3M` | Suavização da série temporal | Visão Executiva |
-| `Reclamações por 100k` | Normalizado por assinantes | Regional, Risco |
-| `Índice Concentração` | HHI de market share de reclamações | Risco |
-| `Flag Piora MoM` | Sinal de alerta (Crítico/Atenção/Melhora) | Todas |
-
-> Implementação completa de todas as medidas: `dax/measures.md`
-
----
-
-## Limitações e Caveats
-
-1. **Sem dados de assinantes reais:** A métrica `Recl/100k` usa estimativas de market share — para produção, substituir pela base real ANATEL
-2. **Dias de resolução:** O dataset ANATEL não contém data de resposta; o campo `dias_resolucao` é estimado
-3. **SMP vs. SCM:** Reclamações de celular e internet têm perfis de motivos distintos — filtrar por serviço para análises comparativas precisas
-4. **Dados sintéticos:** Este repositório usa dados gerados por `src/generate_data.py` para demonstração. Para uso real, baixar CSVs do portal ANATEL
-
----
-
-## Próximos Passos Sugeridos
-
-- [ ] Integrar base de assinantes real (ANATEL → Setor Regulado)
-- [ ] Adicionar NPS proxy via scraping de reclameaqui.com.br
-- [ ] Dashboard de acompanhamento de metas mensais
-- [ ] Alertas automáticos via Power Automate quando variação > threshold
-- [ ] Publicar no Power BI Service com refresh agendado
+- **Taxa de resolução ≠ satisfação.** Mede status `Respondida`, não desfecho.
+- **Volume bruto ≠ qualidade.** Sempre cruzar com a métrica por 100k assinantes.
+- **Os dados são sintéticos.** As proporções imitam a realidade publicada pela ANATEL,
+  mas nenhum número aqui deve ser citado como fato de mercado.
+- **Sem denominador populacional na análise regional.** O ranking de UF mede tamanho do
+  estado tanto quanto qualidade do serviço.

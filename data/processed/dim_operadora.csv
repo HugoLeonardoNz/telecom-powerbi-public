@@ -1,7 +1,7 @@
 ﻿id_operadora,nome,porte,grupo_economico
-1,VIVO,Grande,Vivo
-2,OI,Grande,Oi
-3,SERCOMTEL,Pequeno,Sercomtel
-4,CLARO,Grande,Claro
-5,TIM,Grande,TIM
-6,DESCONHECIDA,Grande,Claro
+1,VIVO,Grande,Telefónica
+2,OI,Grande,Oi S.A.
+3,SERCOMTEL,Médio,Sercomtel
+4,CLARO,Grande,América Móvil
+5,TIM,Grande,TIM Group
+6,NÃO IDENTIFICADA,N/D,Não identificado
