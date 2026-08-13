@@ -40,6 +40,10 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 IMPLICIT_NULLS = {"-", "N/A", "NA", "NÃO INFORMADO", "NAO INFORMADO", " ", ""}
 
+# Rótulo único para prestadora não identificada. Usado tanto na normalização
+# quanto na dimensão, para não existirem dois nomes para o mesmo conceito.
+NAO_IDENTIFICADA = "NÃO IDENTIFICADA"
+
 COLUMN_RENAME = {
     "Data_Abertura":     "data_abertura",
     "Tipo":              "tipo",
@@ -61,6 +65,10 @@ OPERADORA_EXTRA = {
     "TIM":        ("Grande", "TIM Group"),
     "OI":         ("Grande", "Oi S.A."),
     "SERCOMTEL":  ("Médio",  "Sercomtel"),
+    # Registros cuja prestadora não pôde ser identificada na base bruta.
+    # Mantidos no fato (não são descartados) para que o volume total continue
+    # batendo com a origem; ficam de fora das comparações competitivas.
+    NAO_IDENTIFICADA: ("N/D", "Não identificado"),
 }
 
 UF_MAP = {
@@ -124,7 +132,7 @@ def parse_dates(df: pd.DataFrame) -> pd.DataFrame:
 
 def normalize_operator(name: str | float) -> str:
     if pd.isna(name):
-        return "DESCONHECIDA"
+        return NAO_IDENTIFICADA
     name = str(name).strip().upper()
     mapping = {
         "CLARO S.A.": "CLARO",
@@ -185,10 +193,13 @@ def main() -> None:
         .reset_index(drop=True)
         .rename(columns={"operadora": "nome"})
     )
+    # OPERADORA_EXTRA é a fonte da verdade para porte/grupo: o valor que vem da
+    # base bruta é o da primeira linha encontrada e não é confiável (foi assim
+    # que "NÃO IDENTIFICADA" acabou herdando grupo econômico "Claro").
     for name, (porte, grupo) in OPERADORA_EXTRA.items():
         mask = dim_operadora["nome"] == name
-        dim_operadora.loc[mask, "porte"] = dim_operadora.loc[mask, "porte"].fillna(porte)
-        dim_operadora.loc[mask, "grupo_economico"] = dim_operadora.loc[mask, "grupo_economico"].fillna(grupo)
+        dim_operadora.loc[mask, "porte"] = porte
+        dim_operadora.loc[mask, "grupo_economico"] = grupo
     dim_operadora.insert(0, "id_operadora", range(1, len(dim_operadora) + 1))
     print(f"dim_operadora: {len(dim_operadora)} rows")
 
