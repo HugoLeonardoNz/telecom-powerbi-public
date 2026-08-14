@@ -46,9 +46,11 @@ THEME_FILE = ROOT / "theme" / "fibernet_dark.json"
 BG_OUT = "#07080B"     # area fora do canvas
 BG_PAGE = "#0B0D11"    # canvas
 BG_CARD = "#12151B"    # superficie dos paineis
-BORDER = "#1E232D"     # contorno dos paineis
+BORDER = "#242A36"     # contorno dos paineis (unica separacao, entao um tom acima)
 GRID = "#191D25"       # linhas de grade
-BG_ALT = "#171B23"     # faixa alternada das tabelas
+BG_ALT = "#12161D"     # faixa alternada das tabelas (sutil sobre o fundo)
+CHICLET_OFF = "#171C24"  # bloco nao selecionado
+CHICLET_ON = "#1F4E5A"   # bloco selecionado
 
 TXT = "#E9EDF3"        # texto primario
 TXT_MUT = "#96A0B2"    # texto secundario
@@ -263,8 +265,11 @@ def sort_by_column(entity: str, prop: str, direction: str = "Ascending") -> dict
 def panel(title: str | None = None, subtitle: str | None = None, framed: bool = True,
           centro: bool = False) -> dict:
     """Moldura padrao: fundo, borda, titulo e subtitulo com a mesma tipografia."""
+    # Painel sem preenchimento: o relatorio inteiro fica sobre uma superficie
+    # continua e a unica separacao e o fio do contorno. Fundo de painel numa cor
+    # levemente diferente da pagina criava blocos flutuando sobre outro bloco.
     c: dict = {
-        "background": obj(show=lit(framed), color=solid(BG_CARD), transparency=lit(0)),
+        "background": obj(show=lit(False)),
         "border": obj(show=lit(framed), color=solid(BORDER), radius=lit(16)),
         "dropShadow": obj(show=lit(False)),
         "visualHeader": obj(show=lit(False)),
@@ -274,7 +279,7 @@ def panel(title: str | None = None, subtitle: str | None = None, framed: bool = 
             show=lit(True),
             text=lit(title),
             fontColor=solid(TXT),
-            background=solid(BG_CARD),
+            background=solid(BG_PAGE),
             fontFamily=lit(FONT_SEMI),
             fontSize=lit(14),
             alignment=lit("center" if centro else "left"),
@@ -353,7 +358,7 @@ def table_style(total: bool = False, font: int = 12) -> dict:
     return {
         "columnHeaders": obj(
             fontColor=solid(TXT_MUT),
-            backColor=solid(BG_ALT),
+            backColor=solid(BG_PAGE),
             fontFamily=lit(FONT_SEMI),
             fontSize=lit(11),
             outline=lit("BottomOnly"),
@@ -365,7 +370,7 @@ def table_style(total: bool = False, font: int = 12) -> dict:
         # para guiar, nao para chamar atencao.
         "values": obj(
             fontColorPrimary=solid(TXT),
-            backColorPrimary=solid(BG_CARD),
+            backColorPrimary=solid(BG_PAGE),
             fontColorSecondary=solid(TXT),
             backColorSecondary=solid(BG_ALT),
             fontFamily=lit(FONT),
@@ -570,7 +575,7 @@ def matrix(page: str, key: str, box, title: str, subtitle: str,
     objects = table_style(total=False)
     objects["rowHeaders"] = obj(
         fontColor=solid(TXT),
-        backColor=solid(BG_ALT),
+        backColor=solid(BG_PAGE),
         fontFamily=lit(FONT),
         fontSize=lit(12),
         steppedLayout=lit(True),
@@ -643,6 +648,57 @@ def scatter(page: str, key: str, box, title: str, subtitle: str,
         }),
         objects=objects,
         container=panel(title, subtitle),
+    )
+
+
+def chiclet(page: str, key: str, box, label: str, entity: str, prop: str,
+            colunas: int) -> dict:
+    """Chiclet Slicer — cada valor vira um bloco clicavel.
+
+    O visual nativo nao expoe cor de estado: selecionado, sob o cursor e nao
+    selecionado saem todos iguais, e o filtro ativo so aparecia por uma borda
+    fina. O Chiclet expoe os tres, que e o que da acabamento a faixa de filtros.
+
+    `colunas` = quantos blocos por linha. Definido pelo numero de valores do
+    campo, para a faixa caber numa linha so.
+    """
+    return visual(
+        page, key, "ChicletSlicer1448559807354", box,
+        query=q({"Category": [column_field(entity, prop)]}),
+        objects={
+            "general": obj(
+                orientation=lit("Horizontal"),
+                columns=lit(colunas),
+                rows=lit(0),
+                multiselect=lit(True),
+                showDisabled=lit("Inplace"),
+                forcedSelection=lit(False),
+            ),
+            "header": obj(
+                show=lit(True), title=lit(label),
+                fontColor=solid(TXT_DIM), background=solid(BG_PAGE),
+                textSize=lit(10), outline=lit("None"),
+            ),
+            "rows": obj(
+                fontColor=solid(TXT), textSize=lit(10),
+                selectedColor=solid(CHICLET_ON),
+                hoverColor=solid("#2A3242"),
+                unselectedColor=solid(CHICLET_OFF),
+                disabledColor=solid(BG_PAGE),
+                background=solid(BG_PAGE),
+                transparency=lit(0),
+                outlineColor=solid(BORDER), outlineWeight=lit(1),
+                borderStyle=lit("Rounded"),
+                padding=lit(4), height=lit(34),
+            ),
+        },
+        container={
+            "background": obj(show=lit(False)),
+            "border": obj(show=lit(False)),
+            "dropShadow": obj(show=lit(False)),
+            "visualHeader": obj(show=lit(False)),
+            "title": obj(show=lit(False)),
+        },
     )
 
 
@@ -739,15 +795,18 @@ def chrome(page: str, title: str, subtitle: str, filters: bool = True) -> list:
     if filters:
         # Largura proporcional a quantidade de valores: em bloco cada valor ocupa
         # espaco. Operadora tem 6, Regiao 5, Ano e Servico 2 cada.
-        widths = [(MARGIN, 196), (MARGIN + 212, 672), (MARGIN + 900, 500), (MARGIN + 1416, 172)]
+        # "NAO IDENTIFICADA" e o rotulo mais longo: Operadora precisa de folga
+        # para os 6 blocos caberem sem truncar o texto.
+        widths = [(MARGIN, 168), (MARGIN + 184, 772), (MARGIN + 972, 468), (MARGIN + 1456, 160)]
         specs = [
-            ("Ano", "dim_calendario", "Ano"),
-            ("Operadora", "dim_operadora", "Operadora"),
-            ("Região", "dim_uf", "Região"),
-            ("Serviço", "fato_reclamacoes", "Serviço"),
+            ("Ano", "dim_calendario", "Ano", 2),
+            ("Operadora", "dim_operadora", "Operadora", 6),
+            ("Região", "dim_uf", "Região", 5),
+            ("Serviço", "fato_reclamacoes", "Serviço", 2),
         ]
-        for (x, w), (label, ent, prop) in zip(widths, specs):
-            v.append(slicer(page, f"slicer_{prop}", (x, FILTER_Y, w, FILTER_H), label, ent, prop))
+        for (x, w), (label, ent, prop, cols) in zip(widths, specs):
+            v.append(chiclet(page, f"slicer_{prop}", (x, FILTER_Y, w, FILTER_H),
+                             label, ent, prop, cols))
         # Sem nota de fonte por pagina: a origem e a natureza do dado estao
     # declaradas na lede da primeira pagina e na pagina de metodologia. Repetir
     # em toda pagina so disputava espaco com os filtros.
@@ -1252,6 +1311,8 @@ def report_json() -> dict:
             "section": obj(verticalAlignment=lit("Top")),
             "outspacePane": obj(expanded=lit(False)),
         },
+        # Sem esta declaracao o Power BI ignora o pacote e o visual nao carrega.
+        "publicCustomVisuals": ["ChicletSlicer1448559807354"],
         "resourcePackages": [
             {"name": "SharedResources", "type": "SharedResources",
              "items": [{"name": "CY26SU04", "path": "BaseThemes/CY26SU04.json", "type": "BaseTheme"}]},
@@ -1314,7 +1375,9 @@ def build(src: Path, dst: Path) -> None:
     # BuiltInThemes tambem sai: ao salvar, o Desktop despeja o catalogo de temas
     # embutidos dele no arquivo (Bloom.json sozinho tem 3 MB). Nada no relatorio
     # aponta para eles e o Desktop os recria sozinho quando precisa.
-    drop_prefixes = ("Report/definition/", "Report/CustomVisuals/",
+    # Report/CustomVisuals NAO entra na lista: o pacote do Chiclet Slicer vive
+    # ali e precisa continuar no arquivo, senao o visual some do relatorio.
+    drop_prefixes = ("Report/definition/",
                      "Report/StaticResources/RegisteredResources/",
                      "Report/StaticResources/SharedResources/BuiltInThemes/")
     drop_exact = {"Report/Layout", "SecurityBindings"}
