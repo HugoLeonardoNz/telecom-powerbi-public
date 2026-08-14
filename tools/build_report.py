@@ -675,9 +675,11 @@ def chiclet(page: str, key: str, box, label: str, entity: str, prop: str,
                 forcedSelection=lit(False),
             ),
             "header": obj(
-                show=lit(True), title=lit(label),
-                fontColor=solid(TXT_DIM), background=solid(BG_PAGE),
-                textSize=lit(10), outline=lit("None"),
+                show=lit(True), title=lit(label.upper()),
+                fontColor=solid(CYAN), background=solid(BG_PAGE),
+                textSize=lit(11),
+                outline=lit("BottomOnly"), outlineColor=solid(BORDER),
+                outlineWeight=lit(1),
             ),
             "rows": obj(
                 fontColor=solid(TXT), textSize=lit(10),
@@ -1059,40 +1061,47 @@ def page_metodologia() -> tuple[str, list]:
     # Alturas medidas pelo conteudo, nao pela divisao da pagina: com split(3,4)
     # sobrava quase metade de cada painel vazia. O que resta de folga vira
     # margem simetrica em cima e embaixo, para o bloco ficar centrado.
-    H_KPI = 132
-    r = split(3, 2)
+    # Alturas explicitas: com o texto em 15pt, dividir a pagina em duas faixas
+    # iguais cortava a leitura critica. Cada bloco recebe o que o conteudo pede.
+    # A pagina de metodologia nao tem faixa de filtros, entao nao herda o
+    # recuo que existe para ela: o conteudo sobe.
+    H_BLOCOS, H_KPI, H_NOTAS = 424, 128, 300
+    y_blocos = HEADER_Y + HEADER_H + 28
+    y_kpi    = y_blocos + H_BLOCOS + GUTTER
+    y_notas  = y_kpi + H_KPI + GUTTER
+    r = [(y_blocos, H_BLOCOS), (y_kpi, H_KPI + GUTTER + H_NOTAS)]
     c3 = cols(3)
 
     blocos = [
         ("Fonte e escopo", [
-            ("Origem", "ANATEL — Reclamações e denúncias de consumidores (dados abertos), "
-                       "serviços SCM (banda larga fixa) e SMP (telefonia móvel)."),
+            ("Origem", "ANATEL — Reclamações de consumidores (dados abertos), serviços SCM "
+                       "(banda larga fixa) e SMP (telefonia móvel)."),
             ("Período", "Janeiro/2022 a dezembro/2023 · 8.000 registros · 730 dias de calendário."),
-            ("Natureza", "Base sintética gerada a partir das proporções reais publicadas pela "
-                         "ANATEL. Serve para demonstrar modelagem e análise, não para citar "
-                         "números como fato de mercado."),
-            ("Reprodutibilidade", "data_prep/prepare_data.py reconstrói o star schema a partir "
-                                  "de data/raw. O caminho dos CSVs é o parâmetro PastaDados."),
+            ("Natureza", "Base sintética, gerada a partir das proporções reais da ANATEL. "
+                         "Demonstra modelagem e análise — não serve para citar números "
+                         "como fato de mercado."),
+            ("Reprodutibilidade", "data_prep/prepare_data.py reconstrói o star schema. O caminho dos "
+                                  "CSVs é o parâmetro PastaDados."),
         ]),
         ("Modelagem", [
             ("Esquema", "Star schema: 1 fato (fato_reclamacoes) e 4 dimensões "
                         "(operadora, UF, tipo de reclamação, calendário)."),
-            ("Grão", "Uma linha por reclamação registrada. A coluna qtd = 1 mantém o fato "
-                     "aditivo e permite trocar a agregação sem reescrever medidas."),
+            ("Grão", "Uma linha por reclamação. A coluna qtd = 1 mantém o fato aditivo e "
+                     "permite trocar a agregação sem reescrever medidas."),
             ("Relações", "Um-para-muitos, filtro simples, da dimensão para o fato. Sem "
-                         "bidirecional: ambiguidade de filtro é evitada por desenho."),
+                         "bidirecional — ambiguidade é evitada por desenho."),
             ("Calendário", "dim_calendario é contínua e marcada como tabela de datas, "
-                           "requisito das funções de inteligência temporal."),
+                           "requisito da inteligência temporal."),
         ]),
         ("Camada de medidas", [
-            ("Organização", "Todas as medidas vivem na tabela _Medidas, agrupadas em pastas "
-                            "numeradas por domínio (volume, resolução, temporal, mercado, risco)."),
-            ("Normalização", "Reclamações por 100k assinantes corrige o viés de porte: "
-                             "comparar CLARO e SERCOMTEL por volume bruto não diz nada."),
-            ("Concentração", "HHI = soma dos quadrados dos market shares. Faixas: < 1.500 "
-                             "competitivo, até 2.500 concentrado, acima disso altamente concentrado."),
-            ("Score de risco", "Composição ponderada de volume (40%), falha de resolução (35%) "
-                               "e volume normalizado (25%), reescalada de 0 a 1."),
+            ("Organização", "Todas as medidas vivem em _Medidas, em pastas numeradas por "
+                            "domínio: volume, resolução, temporal, mercado, risco."),
+            ("Normalização", "Reclamações por 100k assinantes corrige o viés de porte — comparar "
+                             "CLARO e SERCOMTEL por volume bruto não diz nada."),
+            ("Concentração", "HHI = soma dos quadrados dos market shares. Até 1.500 é competitivo; "
+                             "até 2.500, concentrado; acima, altamente."),
+            ("Score de risco", "Volume (40%), falha de resolução (35%) e volume normalizado (25%), "
+                               "reescalados de 0 a 1."),
         ]),
     ]
 
@@ -1100,9 +1109,9 @@ def page_metodologia() -> tuple[str, list]:
         runs = []
         for i, (rot, txt) in enumerate(itens):
             if i:
-                runs.append(run("\n\n", 11, TXT_DIM))
-            runs.append(run(rot + "\n", 11, CYAN, bold=True))
-            runs.append(run(txt, 11, TXT_MUT))
+                runs.append(run("\n\n", 15, TXT_DIM))
+            runs.append(run(rot + "\n", 15, CYAN, bold=True))
+            runs.append(run(txt, 15, TXT_MUT))
         v.append(visual(
             p, f"bloco_{titulo}", "textbox", (x, r[0][0], w, r[0][1]),
             objects={"general": obj(paragraphs=[{"textRuns": runs, "horizontalTextAlignment": "left"}])},
@@ -1121,13 +1130,13 @@ def page_metodologia() -> tuple[str, list]:
 
     limites = [
         ("Por que os registros sem operadora ficam na base",
-         "Descartá-los deixaria o total divergente da origem. Eles entram no volume "
-         "consolidado e ficam com base de assinantes em branco, o que anula a taxa por "
-         "100k em vez de produzir um número falso."),
+         "Descartá-los deixaria o total divergente da origem. Entram no volume "
+         "consolidado e ficam sem base de assinantes, o que anula a taxa por 100k "
+         "em vez de produzir um número falso."),
         ("O que este relatório não responde",
-         "Não há dado de causa raiz técnica, de custo de atendimento nem de tempo de "
-         "resolução por protocolo. Taxa de resolução aqui é o percentual com status "
-         "Respondida, não uma medida de satisfação do consumidor."),
+         "Não há causa raiz técnica, custo de atendimento nem tempo de resolução. "
+         "Taxa de resolução aqui é o percentual com status Respondida — não é "
+         "medida de satisfação do consumidor."),
         ("Stack",
          "Python (pandas) para preparação · Power BI Desktop com modelo tabular e DAX · "
          "tema e camada visual versionados em JSON (theme/ e tools/build_report.py)."),
@@ -1135,12 +1144,12 @@ def page_metodologia() -> tuple[str, list]:
     runs = []
     for i, (rot, txt) in enumerate(limites):
         if i:
-            runs.append(run("\n\n", 11, TXT_DIM))
-        runs.append(run(rot + "\n", 11, AMBER, bold=True))
-        runs.append(run(txt, 11, TXT_MUT))
+            runs.append(run("\n\n", 15, TXT_DIM))
+        runs.append(run(rot + "\n", 15, AMBER, bold=True))
+        runs.append(run(txt, 15, TXT_MUT))
     v.append(visual(
         p, "limites", "textbox",
-        (MARGIN, r[1][0] + H_KPI + GUTTER, CONTENT_W, r[1][1] - H_KPI - GUTTER),
+        (MARGIN, y_notas, CONTENT_W, H_NOTAS),
         objects={"general": obj(paragraphs=[{"textRuns": runs, "horizontalTextAlignment": "left"}])},
         container=panel("LEITURA CRÍTICA E LIMITES", None),
     ))
