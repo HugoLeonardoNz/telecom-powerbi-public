@@ -677,9 +677,7 @@ def chiclet(page: str, key: str, box, label: str, entity: str, prop: str,
             "header": obj(
                 show=lit(True), title=lit(label.upper()),
                 fontColor=solid(CYAN), background=solid(BG_PAGE),
-                textSize=lit(11),
-                outline=lit("BottomOnly"), outlineColor=solid(BORDER),
-                outlineWeight=lit(1),
+                textSize=lit(11), outline=lit("None"),
             ),
             "rows": obj(
                 fontColor=solid(TXT), textSize=lit(10),
@@ -799,7 +797,10 @@ def chrome(page: str, title: str, subtitle: str, filters: bool = True) -> list:
         # espaco. Operadora tem 6, Regiao 5, Ano e Servico 2 cada.
         # "NAO IDENTIFICADA" e o rotulo mais longo: Operadora precisa de folga
         # para os 6 blocos caberem sem truncar o texto.
-        widths = [(MARGIN, 168), (MARGIN + 184, 772), (MARGIN + 972, 468), (MARGIN + 1456, 160)]
+        # Cada bloco recebe largura_do_filtro / colunas: a largura de cada faixa
+        # e ditada pelo rotulo mais longo do campo ("NAO IDENTIFICADA" em
+        # Operadora, "Centro-Oeste" em Regiao).
+        widths = [(MARGIN, 150), (MARGIN + 166, 840), (MARGIN + 1022, 530), (MARGIN + 1568, 150)]
         specs = [
             ("Ano", "dim_calendario", "Ano", 2),
             ("Operadora", "dim_operadora", "Operadora", 6),
