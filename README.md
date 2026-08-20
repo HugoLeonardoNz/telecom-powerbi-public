@@ -28,11 +28,23 @@ não qualidade de serviço — por isso as duas visões ficam lado a lado.
 
 ### Motivos — causa estrutural, não falha isolada
 Cobrança e velocidade concentram 44% de tudo, e o mix muda pouco de uma marca para outra.
-A matriz desce até a subcategoria por drill.
+A matriz desce até a subcategoria por drill, e o gráfico ao lado dela mostra o mesmo
+detalhe somado — "Velocidade abaixo do contratado" é a queixa isolada mais frequente do
+período.
+
+As 11 categorias têm cor fixa, de uma família só (azul → violeta → rosa) alternando claro
+e escuro a cada passo: onze matizes espalhados pelo círculo cromático viram festa junina,
+e onze tons vizinhos da mesma cor se confundem na barra empilhada, onde as fatias se
+encostam. "Outros" e "Não Informado" ficam em cinza — são ausência de informação, não
+mais um assunto.
 
 ![Motivos](docs/img/03-motivos.png)
 
 ### Regiões
+Volume por região e por UF, situação por região e o detalhe estado a estado. Sem
+denominador populacional, ranking de UF mede população tanto quanto qualidade de serviço —
+está dito no próprio subtítulo da página.
+
 ![Regiões](docs/img/04-regioes.png)
 
 ### Risco regulatório
@@ -121,6 +133,39 @@ O que isso resolve, na prática:
 
 O tema (`theme/fibernet_dark.json`) também é gerado pelo script e embutido no arquivo.
 
+### Escala de arredondamento
+
+Um degrau por nível de superfície, e nada fora da escala — o mesmo em `theme/` e em cada
+visual. Antes, cada tipo de elemento tinha o raio que sobrou da vez em que foi escrito
+(painel 16, tema 12, segmentação 14, navegação 8) e o conjunto lia como quatro relatórios
+colados.
+
+| Token | Valor | Onde |
+|---|---:|---|
+| `R_CHIP` | 10 px | bloco de filtro |
+| `R_CTRL` | 14 px | botão de navegação, segmentação nativa |
+| `R_PANEL` | 20 px | painel e cartão |
+
+O raio acompanha o tamanho da superfície: raio único em elementos de tamanhos diferentes
+faz o pequeno parecer redondo demais e o grande, duro. O degrau do chip está ancorado nos
+10px fixos que o Chiclet Slicer arredonda dentro do próprio código do visual — não há
+propriedade para mudar, então a escala parte de um valor real em vez de brigar com ele.
+
+Duas armadilhas do formato, para quem for repetir:
+
+- o raio do botão de navegação **não** é `roundedCornerRadius` (esse é do plano de fundo
+  do visual): é `shape.roundEdge`, medido em pontos e declarado com seletor de estado
+  (`{"id": "default"}`). Propriedade desconhecida não dá erro — o Power BI ignora em
+  silêncio, e os botões saem de canto vivo no meio de uma página toda arredondada;
+- **não** tente limpar o `DiagramLayout` reescrevendo a parte com `"nodes": []`. Um
+  diagrama sem nó nenhum, num modelo que tem tabela, é estado inválido: o Desktop recusa
+  o arquivo inteiro com "esse arquivo está corrompido ou foi criado por uma versão não
+  reconhecida" — a mesma mensagem sem pista que o `SecurityBindings` dá.
+
+O mesmo conjunto de tokens vale no
+[socioeconomic-powerbi-public](https://github.com/HugoLeonardoNz/socioeconomic-powerbi-public):
+paleta e tipografia separam os dois relatórios, o acabamento os une.
+
 ---
 
 ## Estrutura
@@ -178,7 +223,11 @@ telecom-powerbi-public/
 **Relações:** um-para-muitos, filtro simples, da dimensão para o fato. Nenhuma
 bidirecional — ambiguidade de filtro é evitada por desenho.
 **Calendário:** `dim_calendario` é contínua e marcada como tabela de datas, requisito das
-funções de inteligência temporal.
+funções de inteligência temporal. A **data/hora automática do Power BI está desligada** —
+tendo uma dimensão de calendário própria, o recurso só acrescentaria uma tabela de datas
+oculta por coluna de data: duas hierarquias concorrentes para a mesma pergunta, modelo
+maior e nada em troca. O arquivo tem exatamente as 6 tabelas que a visão de Modelo mostra:
+o fato, as 4 dimensões e `_Medidas`.
 
 ### Origem dos dados
 
