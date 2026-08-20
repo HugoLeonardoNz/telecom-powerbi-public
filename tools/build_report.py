@@ -11,6 +11,11 @@ Por que gerar em vez de arrastar visual no Desktop:
   - a formatacao e definida uma vez e aplicada a todos os visuais;
   - a revisao do relatorio vira diff de codigo.
 
+O acabamento e definido em tokens no topo do arquivo — cor, tipografia e a
+escala de arredondamento (R_CHIP / R_CTRL / R_PANEL). Nenhum raio, cor ou
+tamanho de fonte deve aparecer solto no meio de uma pagina: se um valor novo
+for preciso, ele entra na escala.
+
 Uso:
     python tools/build_report.py [origem.pbix] [destino.pbix]
 
@@ -45,10 +50,10 @@ THEME_FILE = ROOT / "theme" / "fibernet_dark.json"
 
 BG_OUT = "#07080B"     # area fora do canvas
 BG_PAGE = "#0B0D11"    # canvas
-BG_CARD = "#12151B"    # superficie dos paineis
-BORDER = "#242A36"     # contorno dos paineis (unica separacao, entao um tom acima)
+BG_CARD = "#10131A"    # superficie dos paineis — um degrau acima da pagina
+BORDER = "#1E2431"     # contorno: fio discreto, porque quem separa e o degrau
 GRID = "#191D25"       # linhas de grade
-BG_ALT = "#12161D"     # faixa alternada das tabelas (sutil sobre o fundo)
+BG_ALT = "#151922"     # faixa alternada das tabelas (sutil sobre a superficie)
 CHICLET_OFF = "#171C24"  # bloco nao selecionado
 CHICLET_ON = "#1F4E5A"   # bloco selecionado
 
@@ -81,19 +86,70 @@ STATUS = {
     "Em Análise": AMBER,
     "Pendente": RED,
 }
+# Categoria de reclamacao: 11 valores fixos. Antes cada visual pintava categoria
+# por conta propria — barra toda em indigo numa pagina, arco-iris do tema na
+# barra empilhada da outra — e a mesma "Cobrança" saia de duas cores.
+#
+# Uma familia so (azul -> violeta -> rosa), alternando claro e escuro a cada
+# passo. Onze matizes espalhados pelo circulo cromatico viram festa junina; onze
+# tons vizinhos da mesma cor se confundem na barra empilhada, onde as fatias se
+# encostam. Alternar a luminosidade separa vizinhos sem sair da familia.
+# "Outros" e "Não Informado" ficam em cinza: sao ausencia de informacao, nao
+# mais um assunto.
+CATEGORIA = {
+    "Cobrança": "#5AD8F0",
+    "Velocidade": "#2E8FB5",
+    "Falha": "#8B93F5",
+    "Atendimento": "#4C5FD0",
+    "Qualidade": "#B07BEE",
+    "Internet": "#6E3FB8",
+    "Contrato": "#E58FD0",
+    "Portabilidade": "#9C4F8E",
+    "Instalação": "#7FC8E8",
+    "Outros": "#5A6478",
+    "Não Informado": "#414B5C",
+}
 
 FONT = "Segoe UI"
 FONT_SEMI = "Segoe UI Semibold"
+
+# ---------------------------------------------------------------------------
+# Escala de arredondamento
+# ---------------------------------------------------------------------------
+# Um degrau por nivel de superficie, e nada fora da escala. Antes cada tipo de
+# elemento tinha o raio que sobrou da vez em que foi escrito (painel 16, tema
+# 12, segmentacao 14, navegacao 8) e o conjunto lia como quatro relatorios
+# colados.
+#
+#   R_CHIP  bloco de filtro. O Chiclet Slicer arredonda em 10px fixos, dentro do
+#           proprio codigo do visual — nao ha propriedade para mudar. A escala e
+#           ancorada nesse valor em vez de brigar com ele.
+#   R_CTRL  controle: botao de navegacao e segmentacao nativa. Um degrau acima
+#           do bloco, porque o controle e maior e agrupa blocos.
+#   R_PANEL painel e cartao, a maior superficie da pagina.
+#
+# Regra: o raio acompanha o tamanho da superficie. Raio unico em elementos de
+# tamanhos diferentes faz o pequeno parecer redondo demais e o grande, duro.
+R_CHIP, R_CTRL, R_PANEL = 10, 14, 20
+
+# O navegador de paginas e o unico visual que nao mede o raio em pixel:
+# `shape.roundEdge` esta em pontos. NAV_ROUND e R_CTRL convertido (px x 3/4),
+# para o botao cair no mesmo degrau que o resto da escala em vez de virar um
+# numero solto no meio do visual.
+NAV_ROUND = round(R_CTRL * 3 / 4)
 
 # Grid da pagina (1920x1080)
 PAGE_W, PAGE_H = 1920, 1080
 MARGIN = 32
 GUTTER = 16
 CONTENT_W = PAGE_W - 2 * MARGIN          # 1856
-HEADER_Y, HEADER_H = 20, 78   # 78: titulo 22px + subtitulo 11px cabem sem corte
-FILTER_Y, FILTER_H = 106, 80              # 80px: cabecalho + uma linha de blocos
-BODY_Y = 204                              # inicio da area de conteudo
-BODY_H = PAGE_H - BODY_Y - 36             # 840
+# 96: titulo 26px + duas linhas de lede 13px. Com 78 a caixa criava barra de
+# rolagem em toda pagina cujo lede passava de uma linha — um fio branco vertical
+# no meio do cabecalho.
+HEADER_Y, HEADER_H = 20, 96
+FILTER_Y, FILTER_H = 122, 78              # cabecalho do filtro + uma linha de blocos
+BODY_Y = 212                              # inicio da area de conteudo
+BODY_H = PAGE_H - BODY_Y - 36             # 832
 
 ENTITY_M = "_Medidas"
 
@@ -264,13 +320,15 @@ def sort_by_column(entity: str, prop: str, direction: str = "Ascending") -> dict
 
 def panel(title: str | None = None, subtitle: str | None = None, framed: bool = True,
           centro: bool = False) -> dict:
-    """Moldura padrao: fundo, borda, titulo e subtitulo com a mesma tipografia."""
-    # Painel sem preenchimento: o relatorio inteiro fica sobre uma superficie
-    # continua e a unica separacao e o fio do contorno. Fundo de painel numa cor
-    # levemente diferente da pagina criava blocos flutuando sobre outro bloco.
+    """Moldura padrao: superficie, contorno arredondado, titulo e subtitulo."""
+    # O painel tem preenchimento proprio, um degrau acima da pagina. Sem ele o
+    # relatorio virava um desenho tecnico: dezenas de retangulos de fio fino
+    # sobre um fundo unico, sem hierarquia entre conteudo e vao. O degrau e
+    # pequeno de proposito (#0B0D11 -> #10131A) — separa sem criar bloco
+    # flutuante, e e ele que faz o canto arredondado aparecer.
     c: dict = {
-        "background": obj(show=lit(False)),
-        "border": obj(show=lit(framed), color=solid(BORDER), radius=lit(16)),
+        "background": obj(show=lit(True), color=solid(BG_CARD), transparency=lit(0)),
+        "border": obj(show=lit(framed), color=solid(BORDER), radius=lit(R_PANEL)),
         "dropShadow": obj(show=lit(False)),
         "visualHeader": obj(show=lit(False)),
     }
@@ -279,7 +337,7 @@ def panel(title: str | None = None, subtitle: str | None = None, framed: bool = 
             show=lit(True),
             text=lit(title),
             fontColor=solid(TXT),
-            background=solid(BG_PAGE),
+            background=solid(BG_CARD),
             fontFamily=lit(FONT_SEMI),
             fontSize=lit(14),
             alignment=lit("center" if centro else "left"),
@@ -290,6 +348,7 @@ def panel(title: str | None = None, subtitle: str | None = None, framed: bool = 
                 show=lit(bool(subtitle)),
                 text=lit(subtitle or ""),
                 fontColor=solid(TXT_DIM),
+                background=solid(BG_CARD),
                 fontFamily=lit(FONT),
                 fontSize=lit(11),
                 alignment=lit("center" if centro else "left"),
@@ -330,7 +389,10 @@ def axis_val(show: bool = True, font: int = 11, start: float | None = None) -> l
     return [{"properties": props}]
 
 
-def legend(position: str = "TopLeft", show: bool = True) -> list:
+def legend(position: str = "Top", show: bool = True) -> list:
+    # "Top" (nao "TopLeft"): o enum aceito e Top/Bottom/Left/Right e as variantes
+    # *Center. Valor invalido nao da erro — o Power BI cai na legenda a esquerda,
+    # empilhada dentro da area de plotagem, por cima do rotulo do eixo.
     return obj(
         show=lit(show),
         labelColor=solid(TXT_MUT),
@@ -341,15 +403,17 @@ def legend(position: str = "TopLeft", show: bool = True) -> list:
     )
 
 
-def data_labels(show: bool = True, color: str = TXT_MUT, font: int = 11, unit: str | None = None) -> list:
+def data_labels(show: bool = True, color: str = TXT_MUT, font: int = 11, unit: int = 1) -> list:
+    # unit=1 e "Nenhum" no enum de unidades de exibicao (0 e "Automatico").
+    # No automatico o mesmo numero saia "3,5 Mil" num grafico e "3.391" no outro,
+    # dependendo da ordem de grandeza da serie — duas grafias para o mesmo dado.
     props = {
         "show": lit(show),
         "color": solid(color),
         "fontFamily": lit(FONT),
         "fontSize": lit(font),
+        "labelDisplayUnits": lit(unit),
     }
-    if unit is not None:
-        props["labelDisplayUnits"] = lit(unit)
     return [{"properties": props}]
 
 
@@ -358,7 +422,7 @@ def table_style(total: bool = False, font: int = 12) -> dict:
     return {
         "columnHeaders": obj(
             fontColor=solid(TXT_MUT),
-            backColor=solid(BG_PAGE),
+            backColor=solid(BG_CARD),
             fontFamily=lit(FONT_SEMI),
             fontSize=lit(11),
             outline=lit("BottomOnly"),
@@ -370,7 +434,7 @@ def table_style(total: bool = False, font: int = 12) -> dict:
         # para guiar, nao para chamar atencao.
         "values": obj(
             fontColorPrimary=solid(TXT),
-            backColorPrimary=solid(BG_PAGE),
+            backColorPrimary=solid(BG_CARD),
             fontColorSecondary=solid(TXT),
             backColorSecondary=solid(BG_ALT),
             fontFamily=lit(FONT),
@@ -391,7 +455,7 @@ def table_style(total: bool = False, font: int = 12) -> dict:
         "total": obj(
             totals=lit(total),
             fontColor=solid(TXT_MUT),
-            backColor=solid(BG_CARD),
+            backColor=solid(BG_ALT),
             fontFamily=lit(FONT_SEMI),
             fontSize=lit(font),
         ),
@@ -508,7 +572,7 @@ def bar(page: str, key: str, box, title: str, subtitle: str,
     objects = {
         "categoryAxis": axis_cat(),
         "valueAxis": axis_val(show=not labels),
-        "legend": legend(legend_pos or "TopLeft", show=bool(series or legend_pos)),
+        "legend": legend(legend_pos or "Top", show=bool(series or legend_pos)),
         "labels": data_labels(labels),
     }
     if points:
@@ -546,7 +610,7 @@ def line(page: str, key: str, box, title: str, subtitle: str,
         objects={
             "categoryAxis": axis_cat(),
             "valueAxis": axis_val(start=start),
-            "legend": legend("TopLeft", show=len(measures) > 1),
+            "legend": legend("Top", show=len(measures) > 1),
             "labels": data_labels(False),
             "lineStyles": obj(strokeWidth=lit(2), lineStyle=lit("solid"), showMarker=lit(False)),
             "dataPoint": points,
@@ -571,13 +635,23 @@ def table(page: str, key: str, box, title: str, subtitle: str,
 
 
 def matrix(page: str, key: str, box, title: str, subtitle: str,
-           rows_fields: list, cols_fields: list, values_fields: list) -> dict:
-    objects = table_style(total=False)
+           rows_fields: list, cols_fields: list, values_fields: list,
+           font: int = 11) -> dict:
+    objects = table_style(total=False, font=font)
+    # rowPadding menor que o da tabela: sao 11 categorias e o painel divide a
+    # altura com o grafico de subcategorias. Em 8 a ultima categoria caia para
+    # dentro da barra de rolagem.
+    objects["grid"] = obj(
+        gridVertical=lit(False), gridHorizontal=lit(True),
+        gridHorizontalColor=solid(GRID), gridHorizontalWeight=lit(1),
+        outlineColor=solid(BORDER), outlineWeight=lit(1),
+        rowPadding=lit(5), textSize=lit(font),
+    )
     objects["rowHeaders"] = obj(
         fontColor=solid(TXT),
-        backColor=solid(BG_PAGE),
+        backColor=solid(BG_CARD),
         fontFamily=lit(FONT),
-        fontSize=lit(12),
+        fontSize=lit(font),
         steppedLayout=lit(True),
         outline=lit("None"),
     )
@@ -607,7 +681,9 @@ def donut(page: str, key: str, box, title: str, subtitle: str,
           points: list | None = None) -> dict:
     objects = {
         "legend": legend("Right"),
-        "labels": data_labels(False),
+        # Com rotulo: sao tres fatias e ha espaco. Sem ele, o unico jeito de saber
+        # quantas reclamacoes estao pendentes era passar o mouse.
+        "labels": data_labels(True),
         "slices": obj(innerRadiusRatio=lit(68)),
     }
     if points:
@@ -688,8 +764,11 @@ def chiclet(page: str, key: str, box, label: str, entity: str, prop: str,
                 background=solid(BG_PAGE),
                 transparency=lit(0),
                 outlineColor=solid(BORDER), outlineWeight=lit(1),
+                # "Rounded" e o unico degrau que o Chiclet oferece: 10px fixos no
+                # codigo do visual ("Cut" da 5, "Square" da 0). E o R_CHIP da
+                # escala — o valor que os outros raios acompanham.
                 borderStyle=lit("Rounded"),
-                padding=lit(4), height=lit(34),
+                padding=lit(4), height=lit(32),
             ),
         },
         container={
@@ -734,7 +813,7 @@ def slicer(page: str, key: str, box, label: str, entity: str, prop: str) -> dict
         },
         container={
             "background": obj(show=lit(True), color=solid(BG_CARD), transparency=lit(0)),
-            "border": obj(show=lit(True), color=solid(BORDER), radius=lit(14)),
+            "border": obj(show=lit(True), color=solid(BORDER), radius=lit(R_CTRL)),
             "dropShadow": obj(show=lit(False)),
             "visualHeader": obj(show=lit(False)),
             "title": obj(show=lit(False)),
@@ -746,19 +825,27 @@ def navigator(page: str, box) -> dict:
     return visual(
         page, "nav", "pageNavigator", box,
         objects={
-            "shape": obj(roundedCornerRadius=lit(8)),
+            # O raio do botao e `shape.shapeRounding`, nao `roundedCornerRadius`
+            # (esse existe, mas e do plano de fundo do visual). Propriedade
+            # desconhecida nao da erro: o Power BI ignora em silencio, e os
+            # botoes saiam de canto vivo no meio de uma pagina toda arredondada.
+            "shape": [{"properties": {"roundEdge": lit(NAV_ROUND)},
+                       "selector": {"id": "default"}}],
             "text": [
                 {"properties": {"fontColor": solid(TXT_MUT), "fontFamily": lit(FONT),
-                                "fontSize": lit(10)},
+                                "fontSize": lit(11)},
                  "selector": {"id": "default"}},
                 {"properties": {"fontColor": solid(BG_PAGE), "fontFamily": lit(FONT_SEMI),
-                                "fontSize": lit(10)},
+                                "fontSize": lit(11)},
                  "selector": {"id": "selected"}},
             ],
             "fill": [
                 {"properties": {"show": lit(True), "fillColor": solid(BG_CARD),
                                 "transparency": lit(0)},
                  "selector": {"id": "default"}},
+                {"properties": {"show": lit(True), "fillColor": solid(CHICLET_ON),
+                                "transparency": lit(0)},
+                 "selector": {"id": "hover"}},
                 {"properties": {"show": lit(True), "fillColor": solid(CYAN),
                                 "transparency": lit(0)},
                  "selector": {"id": "selected"}},
@@ -767,7 +854,10 @@ def navigator(page: str, box) -> dict:
                 {"properties": {"show": lit(True), "lineColor": solid(BORDER),
                                 "weight": lit(1)},
                  "selector": {"id": "default"}},
+                {"properties": {"show": lit(False)},
+                 "selector": {"id": "selected"}},
             ],
+            "grid": obj(padding=lit(8)),
         },
         container={
             "background": obj(show=lit(False)),
@@ -784,14 +874,17 @@ def navigator(page: str, box) -> dict:
 # ---------------------------------------------------------------------------
 
 def chrome(page: str, title: str, subtitle: str, filters: bool = True) -> list:
+    # 872px de largura: o lede fecha em duas linhas e sobra vao ate a navegacao,
+    # que comeca em 976. Titulo e navegacao dividem a mesma faixa, entao a caixa
+    # de texto nao pode encostar no primeiro botao.
     v = [
-        textbox(page, "titulo", (MARGIN, HEADER_Y, 820, HEADER_H), [
+        textbox(page, "titulo", (MARGIN, HEADER_Y, 872, HEADER_H), [
             run(title, 26, TXT, bold=True),
             run("\n" + subtitle, 13, TXT_DIM),
         ]),
     ]
     if on("nav"):
-        v.append(navigator(page, (960, HEADER_Y + 4, PAGE_W - MARGIN - 960, 42)))
+        v.append(navigator(page, (976, HEADER_Y + 2, PAGE_W - MARGIN - 976, 44)))
     if filters:
         # Largura proporcional a quantidade de valores: em bloco cada valor ocupa
         # espaco. Operadora tem 6, Regiao 5, Ano e Servico 2 cada.
@@ -826,7 +919,7 @@ def page_panorama() -> tuple[str, list]:
                "8.000 reclamações, 71,9% respondidas e um mercado altamente concentrado — as três maiores operadoras respondem por 87% das queixas. Clique em qualquer elemento para filtrar a página.")
 
     # Faixa de KPIs
-    kpi_y, kpi_h = BODY_Y, 112
+    kpi_y, kpi_h = BODY_Y, 104
     for (x, w), (key, label, measure, color, note, cm) in zip(cols(5), [
         ("k1", "TOTAL DE RECLAMAÇÕES", "Total Reclamações", CYAN, "no período filtrado", None),
         ("k2", "TAXA DE RESOLUÇÃO", "% Taxa Resolução", GREEN, "respondidas / total", None),
@@ -839,7 +932,9 @@ def page_panorama() -> tuple[str, list]:
     # Faixa de leitura automatica. Altura folgada porque o cartao divide o
     # espaco com o titulo e o subtitulo do painel.
     ins_y = kpi_y + kpi_h + GUTTER
-    ins_h = 96
+    # 94: o cartao divide a altura com titulo e subtitulo do painel, e em 86 a
+    # ultima linha da frase saia com os descendentes cortados pela borda.
+    ins_h = 94
     v.append(visual(
         p, "insight", "card", (MARGIN, ins_y, CONTENT_W, ins_h),
         query=q({"Values": [measure_field("Insight Executivo")]}),
@@ -853,8 +948,11 @@ def page_panorama() -> tuple[str, list]:
 
     top = ins_y + ins_h + GUTTER
     livre = PAGE_H - 36 - top - GUTTER
-    h_topo = livre * 0.46
-    h_base = livre * 0.54
+    # A faixa de baixo leva a maior parte porque "Principais motivos" tem 11
+    # categorias: abaixo de ~26px por barra o Power BI para de desenhar e cria
+    # barra de rolagem, e o painel passa a esconder as tres ultimas categorias.
+    h_topo = livre * 0.43
+    h_base = livre * 0.57
     (xa, wa), (xb, wb) = cols(2)
 
     v.append(line(p, "serie", (MARGIN, top, 1218, h_topo),
@@ -882,11 +980,11 @@ def page_panorama() -> tuple[str, list]:
 
     v.append(bar(p, "motivos", (xb, top + h_topo + GUTTER, wb, h_base),
                  "Principais motivos",
-                 "categoria da reclamação registrada na ANATEL",
+                 "categoria da reclamação registrada na ANATEL · cor fixa por categoria",
                  "dim_tipo_reclamacao", "Categoria", "Total Reclamações",
-                 color=INDIGO))
+                 points=category_colors("dim_tipo_reclamacao", "Categoria", CATEGORIA)))
 
-    return "Panorama Executivo", v
+    return "Panorama", v
 
 
 def page_operadoras() -> tuple[str, list]:
@@ -894,8 +992,9 @@ def page_operadoras() -> tuple[str, list]:
     v = chrome(p, "Operadoras",
                "SERCOMTEL é a menor operadora em volume e a que mais gera reclamação por assinante: 41,5 a cada 100 mil, contra 9,6 da CLARO. Ranking bruto mede tamanho de base, não qualidade de serviço.")
 
-    # A tabela tem 6 linhas: dar metade da pagina a ela deixaria um vazio grande.
-    r = split(3, 2.1)
+    # A tabela tem 6 linhas + cabecalho: pede ~290px e nada alem disso. O resto
+    # vai para a dispersao e o ranking, que sao o argumento da pagina.
+    r = split(3.0, 2.1)
     (xa, wa), (xb, wb) = cols(2)
 
     v.append(scatter(p, "disp", (xa, r[0][0], wa, r[0][1]),
@@ -934,14 +1033,16 @@ def page_motivos() -> tuple[str, list]:
     v = chrome(p, "Motivos",
                "Cobrança e velocidade concentram 44% de tudo. O mix muda pouco de uma marca para outra, o que aponta para causa estrutural do setor e não para falha isolada de uma operadora.")
 
-    r = split(1, 1)
+    # 0,95 x 1,05: a faixa de baixo carrega a matriz de 11 categorias, que
+    # precisa de mais altura por linha do que os graficos de cima.
+    r = split(0.95, 1.05)
     (xa, wa), (xb, wb) = cols(2)
 
     v.append(bar(p, "cat", (xa, r[0][0], wa, r[0][1]),
                  "Reclamações por categoria",
                  "categoria registrada no protocolo ANATEL",
                  "dim_tipo_reclamacao", "Categoria", "Total Reclamações",
-                 color=INDIGO))
+                 points=category_colors("dim_tipo_reclamacao", "Categoria", CATEGORIA)))
 
     v.append(bar(p, "mix", (xb, r[0][0], wb, r[0][1]),
                  "Mix de motivos por operadora",
@@ -949,14 +1050,26 @@ def page_motivos() -> tuple[str, list]:
                  "dim_operadora", "Operadora", "Total Reclamações",
                  vtype="hundredPercentStackedBarChart",
                  series=("dim_tipo_reclamacao", "Categoria"),
+                 points=category_colors("dim_tipo_reclamacao", "Categoria", CATEGORIA),
                  labels=False, legend_pos="Bottom"))
 
-    v.append(matrix(p, "heat", (MARGIN, r[1][0], CONTENT_W, r[1][1]),
+    # A matriz nao estica coluna para preencher o painel: em largura cheia,
+    # sobravam 700px de vazio a direita das seis operadoras. Ela fica com a
+    # largura que o conteudo pede e o espaco liberado vira a leitura que faltava
+    # na pagina — o detalhe abaixo da categoria.
+    mw = 1000
+    v.append(matrix(p, "heat", (MARGIN, r[1][0], mw, r[1][1]),
                     "Categoria × operadora",
                     "expanda a categoria para ver a subcategoria",
                     [("dim_tipo_reclamacao", "Categoria"), ("dim_tipo_reclamacao", "Subcategoria")],
                     [("dim_operadora", "Operadora")],
-                    ["Total Reclamações"]))
+                    ["Total Reclamações"], font=10))
+
+    v.append(bar(p, "sub", (MARGIN + mw + GUTTER, r[1][0], CONTENT_W - mw - GUTTER, r[1][1]),
+                 "Subcategorias mais frequentes",
+                 "o detalhe abaixo da categoria, somando todas as operadoras",
+                 "dim_tipo_reclamacao", "Subcategoria", "Total Reclamações",
+                 color=CYAN, labels=False))
     return "Motivos", v
 
 
@@ -1007,7 +1120,9 @@ def page_risco() -> tuple[str, list]:
     v = chrome(p, "Risco Regulatório",
                "CLARO concentra o maior risco: lidera o volume, fica na média em resolução e tem a tendência mensal mais inclinada para cima. Score é composição ponderada, não previsão.")
 
-    r = split(2, 3)
+    # 2,2 e nao 2: com split(2, 3) a sexta linha da tabela ficava cortada ao
+    # meio pela borda do painel.
+    r = split(2.5, 2.7)
     left_w = 1218
     right_x = MARGIN + left_w + GUTTER
     right_w = CONTENT_W - left_w - GUTTER
@@ -1050,7 +1165,7 @@ def page_risco() -> tuple[str, list]:
                  "inclinação da reta de regressão mensal · positivo = piorando",
                  "dim_operadora", "Operadora", "Tendência Linear Mensal",
                  points=category_colors("dim_operadora", "Operadora", BRAND), labels=True))
-    return "Risco Regulatório", v
+    return "Risco", v
 
 
 def page_metodologia() -> tuple[str, list]:
@@ -1066,7 +1181,12 @@ def page_metodologia() -> tuple[str, list]:
     # iguais cortava a leitura critica. Cada bloco recebe o que o conteudo pede.
     # A pagina de metodologia nao tem faixa de filtros, entao nao herda o
     # recuo que existe para ela: o conteudo sobe.
-    H_BLOCOS, H_KPI, H_NOTAS = 424, 128, 300
+    # As tres faixas somam a altura util inteira: com 424/128/300 e texto de
+    # 15px sobrava um vao de ~180px no pe da pagina e outro dentro de cada
+    # painel, e a pagina lia como se tivesse sido interrompida no meio.
+    # Texto em 16px pelo mesmo motivo: e uma pagina para ler, nao para varrer.
+    H_BLOCOS, H_KPI, H_NOTAS = 440, 140, 288
+    TXT_DOC = 16
     y_blocos = HEADER_Y + HEADER_H + 28
     y_kpi    = y_blocos + H_BLOCOS + GUTTER
     y_notas  = y_kpi + H_KPI + GUTTER
@@ -1110,9 +1230,9 @@ def page_metodologia() -> tuple[str, list]:
         runs = []
         for i, (rot, txt) in enumerate(itens):
             if i:
-                runs.append(run("\n\n", 15, TXT_DIM))
-            runs.append(run(rot + "\n", 15, CYAN, bold=True))
-            runs.append(run(txt, 15, TXT_MUT))
+                runs.append(run("\n\n", TXT_DOC, TXT_DIM))
+            runs.append(run(rot + "\n", TXT_DOC, CYAN, bold=True))
+            runs.append(run(txt, TXT_DOC, TXT_MUT))
         v.append(visual(
             p, f"bloco_{titulo}", "textbox", (x, r[0][0], w, r[0][1]),
             objects={"general": obj(paragraphs=[{"textRuns": runs, "horizontalTextAlignment": "left"}])},
@@ -1145,16 +1265,19 @@ def page_metodologia() -> tuple[str, list]:
     runs = []
     for i, (rot, txt) in enumerate(limites):
         if i:
-            runs.append(run("\n\n", 15, TXT_DIM))
-        runs.append(run(rot + "\n", 15, AMBER, bold=True))
-        runs.append(run(txt, 15, TXT_MUT))
+            runs.append(run("\n\n", TXT_DOC, TXT_DIM))
+        runs.append(run(rot + "\n", TXT_DOC, AMBER, bold=True))
+        runs.append(run(txt, TXT_DOC, TXT_MUT))
     v.append(visual(
         p, "limites", "textbox",
         (MARGIN, y_notas, CONTENT_W, H_NOTAS),
         objects={"general": obj(paragraphs=[{"textRuns": runs, "horizontalTextAlignment": "left"}])},
         container=panel("LEITURA CRÍTICA E LIMITES", None),
     ))
-    return "Metodologia & Modelo", v
+    # O nome da pagina e o rotulo do botao de navegacao: seis rotulos longos nao
+    # cabiam na faixa e o ultimo saia cortado. O titulo dentro da pagina continua
+    # inteiro — quem esta na pagina ja sabe onde esta.
+    return "Metodologia", v
 
 
 PAGES = [page_panorama, page_operadoras, page_motivos, page_regioes, page_risco, page_metodologia]
@@ -1193,7 +1316,9 @@ def build_theme() -> dict:
             "*": {
                 "*": {
                     "background": [{"show": True, "color": {"solid": {"color": BG_CARD}}, "transparency": 0}],
-                    "border": [{"show": True, "color": {"solid": {"color": BORDER}}, "radius": 12}],
+                    # Mesmo R_PANEL do gerador: o tema e o que vale para qualquer
+                    # visual que alguem acrescente depois, arrastando no Desktop.
+                    "border": [{"show": True, "color": {"solid": {"color": BORDER}}, "radius": R_PANEL}],
                     "dropShadow": [{"show": False}],
                     "visualHeader": [{"show": False}],
                     "title": [{
@@ -1226,7 +1351,7 @@ def build_theme() -> dict:
                         "labelColor": {"solid": {"color": TXT_MUT}},
                         "fontSize": 9,
                         "showTitle": False,
-                        "position": "TopLeft",
+                        "position": "Top",
                     }],
                     "outline": [{"show": False}],
                 }
@@ -1264,7 +1389,7 @@ def build_theme() -> dict:
                     "values": [{"fontColorPrimary": {"solid": {"color": TXT}},
                                 "backColorPrimary": {"solid": {"color": BG_CARD}},
                                 "fontColorSecondary": {"solid": {"color": TXT}},
-                                "backColorSecondary": {"solid": {"color": BG_CARD}},
+                                "backColorSecondary": {"solid": {"color": BG_ALT}},
                                 "fontSize": 10}],
                 }
             },

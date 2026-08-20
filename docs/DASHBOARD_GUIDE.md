@@ -21,7 +21,12 @@ abre a subcategoria.
 
 **Cor.** Cada operadora tem cor fixa em todas as páginas — CLARO ciano, VIVO índigo, TIM
 âmbar, OI verde, SERCOMTEL vermelho, NÃO IDENTIFICADA cinza. Status também: verde
-respondida, âmbar em análise, vermelho pendente.
+respondida, âmbar em análise, vermelho pendente. E cada uma das 11 categorias de
+reclamação: uma família só, de azul a rosa, com "Outros" e "Não Informado" em cinza —
+são ausência de informação, não mais um assunto.
+
+Quando a cor não carrega informação nenhuma, ela também não varia: no gráfico de
+subcategorias, todas as barras são ciano, porque ali o comprimento já diz tudo.
 
 ---
 
@@ -78,6 +83,9 @@ outras, o problema é de processo dela, não de escala.
 
 **Categoria × operadora** — matriz com drill. Expandir a categoria mostra a subcategoria,
 que é onde a causa raiz costuma aparecer.
+
+**Subcategorias mais frequentes** — o mesmo detalhe da matriz, mas somado e ordenado:
+serve para achar a queixa isolada mais comum sem ter que expandir 11 categorias uma a uma.
 
 ---
 

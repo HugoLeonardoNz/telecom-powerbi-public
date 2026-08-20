@@ -165,7 +165,7 @@ contexto: sem um único mês selecionado, devolve vazio em vez de um número sem
 
 ### Camada visual
 Reescrita do zero por **`tools/build_report.py`**, que gera `Report/definition/**` (formato
-PBIR) a partir de uma especificação declarativa: 6 páginas, 71 visuais, grid calculado,
+PBIR) a partir de uma especificação declarativa: 6 páginas, 67 visuais, grid calculado,
 tokens de design únicos, cor amarrada ao valor da categoria.
 
 - **Panorama Executivo** — 5 KPIs, faixa de leitura automática, evolução mensal com média
