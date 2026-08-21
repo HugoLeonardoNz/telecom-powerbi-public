@@ -73,6 +73,18 @@ SERIES = [CYAN, INDIGO, AMBER, GREEN, RED, "#9D7BF0", "#4FB8E8", "#D4A95C"]
 
 # Cor fixa por marca e por status. Amarrar a cor ao valor (e nao a ordem em que
 # ele aparece no visual) e o que faz CLARO ser sempre ciano em todas as paginas.
+# Regra de cor deste relatorio, para nao voltar ao arco-iris:
+#
+#   Cor categorica so entra quando a categoria NAO esta escrita ao lado. Em
+#   grafico de barras ordenado, o eixo ja nomeia cada barra: pintar cada uma de
+#   uma cor diferente nao acrescenta informacao, gasta a paleta inteira num
+#   visual so e ainda insinua sentido que nao existe — vermelho na SERCOMTEL e
+#   verde na OI liam como julgamento, e nenhum dos dois era.
+#
+#   Onde a cor CARREGA informacao ela fica: barra empilhada e legenda (a
+#   categoria nao cabe no eixo), dispersao com serie, e o mix 100% por
+#   operadora. Nesses casos a cor fixa por marca/categoria e o que deixa CLARO
+#   ser a mesma cor em todas as paginas.
 BRAND = {
     "CLARO": CYAN,
     "VIVO": INDIGO,
@@ -919,7 +931,12 @@ def page_panorama() -> tuple[str, list]:
                "8.000 reclamações, 71,9% respondidas e um mercado altamente concentrado — as três maiores operadoras respondem por 87% das queixas. Clique em qualquer elemento para filtrar a página.")
 
     # Faixa de KPIs
-    kpi_y, kpi_h = BODY_Y, 104
+    # 132 e nao 104: o cartao divide a altura com o titulo (14pt) e o subtitulo
+    # (11pt) do painel, e o visual "card" do Power BI nao encolhe o numero para
+    # caber — ele corta. Em 104 os digitos saiam com a base raspada pela borda,
+    # e a virgula de "71,9%" sumia. Conta: 30pt x 1,33 px/pt x 1,2 de entrelinha
+    # = 48px do numero, mais ~26 do titulo, ~18 do subtitulo e ~22 de respiro.
+    kpi_y, kpi_h = BODY_Y, 132
     for (x, w), (key, label, measure, color, note, cm) in zip(cols(5), [
         ("k1", "TOTAL DE RECLAMAÇÕES", "Total Reclamações", CYAN, "no período filtrado", None),
         ("k2", "TAXA DE RESOLUÇÃO", "% Taxa Resolução", GREEN, "respondidas / total", None),
@@ -974,15 +991,15 @@ def page_panorama() -> tuple[str, list]:
 
     v.append(bar(p, "operadoras", (xa, top + h_topo + GUTTER, wa, h_base),
                  "Volume por operadora",
-                 "cor fixa por marca em todas as páginas",
+                 "ordenado por volume · clique para filtrar a página",
                  "dim_operadora", "Operadora", "Total Reclamações",
-                 points=category_colors("dim_operadora", "Operadora", BRAND)))
+                 color=CYAN))
 
     v.append(bar(p, "motivos", (xb, top + h_topo + GUTTER, wb, h_base),
                  "Principais motivos",
-                 "categoria da reclamação registrada na ANATEL · cor fixa por categoria",
+                 "categoria da reclamação registrada na ANATEL · ordenado por volume",
                  "dim_tipo_reclamacao", "Categoria", "Total Reclamações",
-                 points=category_colors("dim_tipo_reclamacao", "Categoria", CATEGORIA)))
+                 color=INDIGO))
 
     return "Panorama", v
 
@@ -1040,9 +1057,9 @@ def page_motivos() -> tuple[str, list]:
 
     v.append(bar(p, "cat", (xa, r[0][0], wa, r[0][1]),
                  "Reclamações por categoria",
-                 "categoria registrada no protocolo ANATEL",
+                 "categoria registrada no protocolo ANATEL · ordenado por volume",
                  "dim_tipo_reclamacao", "Categoria", "Total Reclamações",
-                 points=category_colors("dim_tipo_reclamacao", "Categoria", CATEGORIA)))
+                 color=INDIGO))
 
     v.append(bar(p, "mix", (xb, r[0][0], wb, r[0][1]),
                  "Mix de motivos por operadora",
@@ -1140,6 +1157,8 @@ def page_risco() -> tuple[str, list]:
                    ],
                    sort=sort_by_measure("Score Risco Operadora")))
 
+    # Mesma conta da faixa do Panorama: tres cartoes de KPI precisam de altura
+    # para o numero nao ser cortado na base. Com r[0][1]=440 sobram ~139 cada.
     kh = (r[0][1] - 2 * 12) / 3
     for i, (key, label, measure, color, note) in enumerate([
         ("hhi", "HHI DO MERCADO", "HHI", INDIGO, "soma dos quadrados dos market shares"),

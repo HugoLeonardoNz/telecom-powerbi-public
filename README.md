@@ -87,7 +87,7 @@ relatório cuja camada visual é **gerada por script** e versionada em JSON.
 | Total de reclamações | 8.000 |
 | Taxa de resolução | 71,9% |
 | Em aberto (sem resposta final) | 2.247 |
-| Variação mensal (MoM) | +4,9% |
+| Variação mensal (dez/23 vs nov/23) | +15,0% |
 | HHI de concentração | 2.908 — altamente concentrado |
 | Concentração Top 3 | 87,1% |
 | Cobertura de identificação da prestadora | 98,8% |
