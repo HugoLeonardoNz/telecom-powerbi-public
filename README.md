@@ -3,13 +3,14 @@
 <div align="center">
 
 ![Power BI](https://img.shields.io/badge/Power%20BI-Desktop-F2C811?style=for-the-badge&logo=powerbi&logoColor=black)
-![DAX](https://img.shields.io/badge/DAX-53%20medidas-F2C811?style=for-the-badge)
+![DAX](https://img.shields.io/badge/DAX-50%20medidas-F2C811?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-ETL%20%2B%20report%20as%20code-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Domain](https://img.shields.io/badge/Domínio-Telecom%20%2F%20Regulatório-0ea5e9?style=for-the-badge)
 ![Data](https://img.shields.io/badge/Dados-ANATEL%20sintéticos-10b981?style=for-the-badge)
+![testes](https://github.com/HugoLeonardoNz/telecom-powerbi-public/actions/workflows/tests.yml/badge.svg)
 
 **Análise regulatória e competitiva de reclamações de consumidores de telecom.**
-Star schema modelado em Power BI, 53 medidas DAX e uma camada visual gerada por código.
+Star schema modelado em Power BI, 50 medidas DAX e uma camada visual gerada por código.
 
 </div>
 
@@ -27,7 +28,7 @@ não qualidade de serviço — por isso as duas visões ficam lado a lado.
 ![Operadoras](docs/img/02-operadoras.png)
 
 ### Motivos — causa estrutural, não falha isolada
-Cobrança e velocidade concentram 44% de tudo, e o mix muda pouco de uma marca para outra.
+Cobrança e velocidade concentram 44,5% de tudo, e o mix muda pouco de uma marca para outra.
 A matriz desce até a subcategoria por drill, e o gráfico ao lado dela mostra o mesmo
 detalhe somado — "Velocidade abaixo do contratado" é a queixa isolada mais frequente do
 período.

@@ -1,6 +1,6 @@
 # Medidas DAX — Reclamações ANATEL
 
-53 medidas na tabela `_Medidas`, agrupadas em pastas numeradas por domínio. **O modelo é
+50 medidas na tabela `_Medidas`, agrupadas em pastas numeradas por domínio. **O modelo é
 a fonte da verdade**; este documento é o espelho dele. Se os dois divergirem, o modelo
 está certo e o documento está velho.
 
