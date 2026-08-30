@@ -349,8 +349,23 @@ regional, motivos, temporal), manda um prompt estruturado pedindo leitura de neg
 sem jargão de dado — e grava o resultado em `outputs/insight_ia_<data>.md`, junto com o
 prompt usado (transparência: dá para auditar exatamente o que foi pedido ao modelo).
 
-<!-- TODO-EXEMPLO-REAL: colar aqui a saída real de uma execução, com data, assim que o
-     Hugo rodar o script com a própria chave. Não substituir por texto inventado. -->
+**Exemplo real** (`gemini-3.6-flash`, 30/08/2026 — [prompt completo aqui](outputs/insight_ia_2026-08-30.md)):
+
+> No período, acumulamos 8.000 reclamações na ANATEL, com a Claro concentrando 42,39% dos
+> chamados (3.391 casos). A taxa geral de resolução fechou em 71,91%, acumulando 2.247
+> demandas pendentes, com São Paulo e Rio de Janeiro liderando os volumes. O problema de
+> cobrança é o grande vilão do negócio, sendo a principal causa de insatisfação em quase
+> todas as empresas.
+>
+> O ponto crítico de atenção está na disparada recente de queixas na Vivo (+43,5%) e na
+> TIM (+39,0%) no último mês. Além disso, a Sercomtel apresenta a pior eficiência
+> operacional, registrando a menor taxa de solução do mercado (68,07%) e a maior proporção
+> de reclamações por carteira de clientes.
+>
+> Recomendo priorizar uma força-tarefa focada na revisão dos processos de faturamento e
+> cobrança nos estados de São Paulo e Rio de Janeiro. A ação deve focar no alinhamento
+> operacional junto à Claro, Vivo e TIM para estancar a entrada de novos chamados e reduzir
+> as pendências.
 
 ---
 
