@@ -3,14 +3,14 @@
 <div align="center">
 
 ![Power BI](https://img.shields.io/badge/Power%20BI-Desktop-F2C811?style=for-the-badge&logo=powerbi&logoColor=black)
-![DAX](https://img.shields.io/badge/DAX-50%20medidas-F2C811?style=for-the-badge)
+![DAX](https://img.shields.io/badge/DAX-53%20medidas-F2C811?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-ETL%20%2B%20report%20as%20code-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Domain](https://img.shields.io/badge/Domínio-Telecom%20%2F%20Regulatório-0ea5e9?style=for-the-badge)
 ![Data](https://img.shields.io/badge/Dados-ANATEL%20sintéticos-10b981?style=for-the-badge)
 ![testes](https://github.com/HugoLeonardoNz/telecom-powerbi-public/actions/workflows/tests.yml/badge.svg)
 
 **Análise regulatória e competitiva de reclamações de consumidores de telecom.**
-Star schema modelado em Power BI, 50 medidas DAX e uma camada visual gerada por código.
+Star schema modelado em Power BI, 53 medidas DAX e uma camada visual gerada por código.
 
 </div>
 
@@ -180,14 +180,19 @@ telecom-powerbi-public/
 ├── src/
 │   ├── generate_data.py              ← gerador de dados sintéticos
 │   └── kpis.py                       ← KPIs exportados para outputs/
-├── tools/build_report.py             ← gerador da camada visual do .pbix
+├── tools/
+│   ├── build_report.py               ← gerador da camada visual do .pbix
+│   └── generate_insight.py           ← resumo executivo via IA generativa (Gemini)
 ├── theme/fibernet_dark.json          ← tema (gerado por build_report.py)
 ├── dax/measures.md                   ← dicionário de medidas
-├── docs/DASHBOARD_GUIDE.md           ← guia de leitura das páginas
+├── docs/
+│   ├── DASHBOARD_GUIDE.md             ← guia de leitura das páginas
+│   └── RLS.md                         ← roles de segurança em nível de linha
 ├── data/
 │   ├── raw/                          ← CSVs de origem
 │   └── processed/                    ← star schema pronto para carga
-└── outputs/                          ← KPIs e figuras da EDA
+├── outputs/                          ← KPIs, figuras da EDA e insights gerados por IA
+└── fabric-lakehouse-demo/            ← mesmo dataset em Lakehouse Fabric (PySpark, DirectLake)
 ```
 
 ---
@@ -314,6 +319,49 @@ Para usar dados reais, baixar os CSVs do portal ANATEL, salvar em `data/raw/` e 
 
 ---
 
+## Segurança em nível de linha (RLS)
+
+Três roles, dois padrões de filtro: `Operadora - VIVO`/`Operadora - CLARO` restringem
+`dim_operadora` (cenário multi-tenant — cada operadora só vê os próprios indicadores) e
+`Regional - Sul` restringe `dim_uf` (analista regional só vê a própria região). O filtro
+propaga da dimensão para o fato e para as 53 medidas sem reescrever nenhuma. Detalhe das
+expressões e como validar em [`docs/RLS.md`](docs/RLS.md).
+
+---
+
+## IA generativa aplicada
+
+A medida DAX `Insight Executivo` (seção `[08] Narrativa`) já lê os números e monta uma
+frase — mas é regra fixa (`SWITCH`/`FORMAT`), reage a filtro dentro do relatório e não
+sai dali. [`tools/generate_insight.py`](tools/generate_insight.py) resolve um problema
+diferente: pegar o período inteiro já agregado em `outputs/*.csv` e gerar, via LLM
+(Gemini, free tier), um resumo executivo em prosa — o tipo de texto que vai para um
+e-mail de fechamento de mês, sem abrir o Power BI.
+
+```bash
+pip install -r requirements-ai.txt
+cp .env.example .env               # e colar a chave (grátis em aistudio.google.com/apikey)
+python tools/generate_insight.py
+```
+
+O script monta o contexto a partir dos 5 CSVs de `outputs/` (consolidado, por operadora,
+regional, motivos, temporal), manda um prompt estruturado pedindo leitura de negócio —
+sem jargão de dado — e grava o resultado em `outputs/insight_ia_<data>.md`, junto com o
+prompt usado (transparência: dá para auditar exatamente o que foi pedido ao modelo).
+
+<!-- TODO-EXEMPLO-REAL: colar aqui a saída real de uma execução, com data, assim que o
+     Hugo rodar o script com a própria chave. Não substituir por texto inventado. -->
+
+---
+
+## Extensão: Lakehouse no Microsoft Fabric
+
+O mesmo dataset, processado como arquitetura medallion (Bronze → Silver → Gold) num
+Lakehouse do Fabric, em PySpark, com relatório Power BI em modo DirectLake — ver
+[`fabric-lakehouse-demo/`](fabric-lakehouse-demo/README.md).
+
+---
+
 ## Decisões técnicas
 
 - **`SUM(qtd)` em vez de `COUNTROWS`** — mantém o fato aditivo e permite trocar a
@@ -333,7 +381,7 @@ Para usar dados reais, baixar os CSVs do portal ANATEL, salvar em `data/raw/` e 
 ## Stack
 
 `Python 3.x` · `pandas` · `NumPy` · `Power BI Desktop` · `DAX` · `Power Query (M)` ·
-`PBIR` (formato JSON do relatório)
+`PBIR` (formato JSON do relatório) · `Gemini API` (IA generativa)
 
 ---
 

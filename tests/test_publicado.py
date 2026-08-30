@@ -162,7 +162,11 @@ def _medidas_documentadas():
             dentro = False
             continue
         if dentro and ln and not ln[0].isspace() and not ln.startswith(ignora):
-            m = re.match(r"^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 %ºª_/.\-]*?)\s*=(?!=)", ln)
+            # % conta como caractere inicial valido: "% Taxa Resolucao =" e
+            # "% do Total =" sao nomes de medida reais no modelo, e o regex
+            # anterior (so letra) as deixava de fora — 3 medidas documentadas
+            # no arquivo nunca eram contadas.
+            m = re.match(r"^([A-Za-zÀ-ÿ%][A-Za-zÀ-ÿ0-9 %ºª_/.\-]*?)\s*=(?!=)", ln)
             if m:
                 nomes.append(m.group(1).strip())
     return nomes
