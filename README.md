@@ -372,8 +372,15 @@ prompt usado (transparência: dá para auditar exatamente o que foi pedido ao mo
 ## Extensão: Lakehouse no Microsoft Fabric
 
 O mesmo dataset, processado como arquitetura medallion (Bronze → Silver → Gold) num
-Lakehouse do Fabric, em PySpark, com relatório Power BI em modo DirectLake — ver
-[`fabric-lakehouse-demo/`](fabric-lakehouse-demo/README.md).
+Lakehouse do Fabric, em PySpark, com relatório Power BI em modo Direct Lake — ver
+[`fabric-lakehouse-demo/`](fabric-lakehouse-demo/README.md). **Executado de ponta a ponta
+em 01/09/2026**, com print de cada etapa.
+
+O ponto do demo não é "sei clicar no Fabric": é que a camada Gold gerada lá bate número
+por número com o `outputs/kpis_por_operadora.csv` deste repositório — duas implementações
+independentes da mesma regra, em pandas e em PySpark, sobre a mesma fonte. Elas
+**divergiram** na primeira execução (145 linhas duplicadas que só um dos lados descartava)
+e a correção virou teste em `tests/test_fabric_paridade.py`.
 
 ---
 
