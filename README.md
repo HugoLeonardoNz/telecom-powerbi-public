@@ -14,7 +14,7 @@ Star schema modelado em Power BI, 53 medidas DAX e uma camada visual gerada por 
 
 </div>
 
-> Peça do portfólio de **Hugo Leonardo**, Analista de Dados — os oito projetos, com o contexto de cada um, estão em **[hugoleonardonz.github.io/portfolio](https://hugoleonardonz.github.io/portfolio/)**.
+> Peça do portfólio de **Hugo Leonardo**, Analista de Dados — cada projeto, com o contexto de por que foi feito, está em **[hugoleonardonz.github.io/portfolio](https://hugoleonardonz.github.io/portfolio/)**.
 
 ![Panorama executivo](docs/img/01-panorama.png)
 
