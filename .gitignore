@@ -12,3 +12,6 @@ build/
 
 # backup que o build cria antes de reescrever o .pbix
 *.prebuild.pbix
+
+# Backup de modelo: fica local, binario duplicado nao agrega ao repo
+*.bak.pbix
