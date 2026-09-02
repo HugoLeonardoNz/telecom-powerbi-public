@@ -3,13 +3,11 @@ Runner script that executes the EDA notebook logic and exports all figures.
 Run from the project root: python run_eda.py
 """
 
-import sys
 import warnings
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -339,4 +337,4 @@ for h, desc, resultado, ok in hipoteses:
     print(f"  {h}: {status:10s} | {resultado:30s} | {desc}")
 
 print(f"\nFiguras salvas em: {OUTPUTS}")
-print(f"Total: 8 graficos HTML interativos")
+print("Total: 8 graficos HTML interativos")

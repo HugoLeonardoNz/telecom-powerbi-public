@@ -1,0 +1,9 @@
+# `spark` e `dbutils` sao globais que o runtime do Microsoft Fabric injeta no
+# notebook antes da primeira celula rodar — o mesmo vale no Databricks. O codigo
+# esta correto; o ruff e que nao tem como saber disso olhando o arquivo.
+#
+# Silenciar F821 apenas neste caminho, e nao no projeto todo, mantem a regra
+# valendo onde ela pega erro de verdade: nome indefinido em Python normal e
+# NameError em execucao.
+[lint.per-file-ignores]
+"fabric-lakehouse-demo/notebooks/*.ipynb" = ["F821"]
