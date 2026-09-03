@@ -14,7 +14,7 @@ Star schema modelado em Power BI, 53 medidas DAX e uma camada visual gerada por 
 
 </div>
 
-> Peça do portfólio de **Hugo Nazário**, Analista de Dados — cada projeto, com o contexto de por que foi feito, está em **[hugoleonardonz.github.io/portfolio](https://hugoleonardonz.github.io/portfolio/)**.
+> Peça do portfólio de **Hugo Nazário**, Analista de Dados — cada projeto, com o contexto de por que foi feito, está em **[hugonazario.com](https://hugonazario.com/)**.
 
 **[▶ Ver relatório ao vivo](https://app.fabric.microsoft.com/view?r=eyJrIjoiMzhiZjcyOTctMzI5OC00NTJlLTg3OWYtNzg1NjZiNjg0ODI4IiwidCI6IjA5NGFkODdhLTAzNDMtNGU3OC05NmIzLTE2OGI4ZTVmMjgzMSJ9)** —
 sem instalar nada. É uma cópia publicada sem RLS (ver por quê na seção
