@@ -16,6 +16,11 @@ Star schema modelado em Power BI, 53 medidas DAX e uma camada visual gerada por 
 
 > Peça do portfólio de **Hugo Nazário**, Analista de Dados — cada projeto, com o contexto de por que foi feito, está em **[hugoleonardonz.github.io/portfolio](https://hugoleonardonz.github.io/portfolio/)**.
 
+**[▶ Ver relatório ao vivo](https://app.fabric.microsoft.com/view?r=eyJrIjoiMzhiZjcyOTctMzI5OC00NTJlLTg3OWYtNzg1NjZiNjg0ODI4IiwidCI6IjA5NGFkODdhLTAzNDMtNGU3OC05NmIzLTE2OGI4ZTVmMjgzMSJ9)** —
+sem instalar nada. É uma cópia publicada sem RLS (ver por quê na seção
+[Segurança em nível de linha](#segurança-em-nível-de-linha-rls)); o `.pbix` deste
+repositório mantém os 3 papéis.
+
 ![Panorama executivo](docs/img/01-panorama.png)
 
 ---
@@ -175,7 +180,8 @@ paleta e tipografia separam os dois relatórios, o acabamento os une.
 
 ```
 telecom-powerbi-public/
-├── telecom_reclamacoes_anatel.pbix   ← relatório (modelo + camada visual)
+├── telecom_reclamacoes_anatel.pbix   ← relatório (modelo + camada visual, com RLS)
+├── telecom_reclamacoes_anatel_publico.pbix  ← cópia sem RLS, é a publicada no link ao vivo
 ├── data_prep/prepare_data.py         ← ETL: limpeza, tipagem, star schema
 ├── src/
 │   ├── generate_data.py              ← gerador de dados sintéticos
@@ -326,6 +332,14 @@ Três roles, dois padrões de filtro: `Operadora - VIVO`/`Operadora - CLARO` res
 `Regional - Sul` restringe `dim_uf` (analista regional só vê a própria região). O filtro
 propaga da dimensão para o fato e para as 53 medidas sem reescrever nenhuma. Detalhe das
 expressões e como validar em [`docs/RLS.md`](docs/RLS.md).
+
+**Por que o link ao vivo não tem RLS:** "Publicar na Web" do Power BI mostra o relatório
+sem login — qualquer pessoa com o link acessa, anonimamente. RLS filtra pelo usuário
+autenticado; sem autenticação não existe "quem" para o filtro aplicar, então o Power BI
+recusa publicar assim qualquer relatório com papéis de segurança. A saída:
+`telecom_reclamacoes_anatel_publico.pbix` é uma cópia sem os 3 papéis, gerada só para essa
+demonstração pública. O arquivo `telecom_reclamacoes_anatel.pbix` deste repositório mantém
+os papéis intactos — é a peça que demonstra RLS.
 
 ---
 
